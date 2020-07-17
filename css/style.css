@@ -23,24 +23,42 @@ header h1 {
     padding: 0 0 0 90px;
 }
 
-header .buttons {
+.buttons {
     font-size: 1.5em;
     margin: 0 0 10px;
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: flex-start;
 }
 
-header .buttons .desc-facing-mode {
+.buttons div:not(:first-of-type) {
+    margin-left: 1em;
+}
+
+.buttons .desc-facing-mode {
     font-size: 0.8em;
     display: block;
     margin: -0.5em 0 0 0;
+}
+
+.buttons .parts div {
+    display: inline;
 }
 
 @media screen and (max-width: 768px) {
     header h1 {
         font-size: 1.6em;
     }
-    header .buttons {
+    .buttons {
         font-size: 1.6em;
         margin: 10px 0 10px;
+    }
+    .buttons div:not(:first-of-type) {
+        margin-left: 0;
+    }
+    .buttons .parts div {
+        display: block;
+        margin: 0 1.5em;
     }
 }
 

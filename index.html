@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>henohenomehe-js</title>
+<title>Face(eyes)! Face(nose)! Face(mouth)!</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="stylesheet" type="text/css" href="css/style.css" />
@@ -9,12 +9,21 @@
 <body>
 <div class="container">
     <header>
-        <h1>henohenomohe-js</h1>
+        <h1>Face(eyes)! Face(nose)! Face(mouth)!</h1>
         <div class="buttons">
             <div>
                 <span><label for="facing-mode">Camera switch</label></span>
                 <input id="facing-mode" type="checkbox" value="1" checked>
                 <span class="desc-facing-mode"><label for="facing-mode">(on: Front / off: Rear)</span>
+            </div>
+            <div class="parts">
+                <span>Parts:</span>
+                <div>
+                    <label for="left-eye-parts">left eye</label> <input id="left-eye-parts" type="checkbox" value="1" checked>
+                    <label for="right-eye-parts">right eye</label> <input id="right-eye-parts" type="checkbox" value="1" checked>
+                    <label for="nose-parts">nose</label> <input id="nose-parts" type="checkbox" value="1" checked>
+                    <label for="mouse-parts">mouse</label> <input id="mouse-parts" type="checkbox" value="1" checked>
+                </div>
             </div>
             <div>
                 <span><label for="for-debug">Debug</label></span>
