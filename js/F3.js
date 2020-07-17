@@ -1,557 +1,682 @@
 document.addEventListener('DOMContentLoaded', () => {
     'use strict';
 
-    /**
-     |--------------------------------------------------------------------------
-     | video canvas size
-     |--------------------------------------------------------------------------
-     */
-    const longSideSize  = getMeasurementSize();
-    function getMeasurementSize() {
-        let _o = window.orientation;
-        let _orientation = _o === undefined ? 90 : _o;
-        if (_orientation === 0 || _orientation === 180) {
-            return window.innerHeight;
-        }
+    const containerMaxWidth = 640;
+    const container = document.querySelector('.container');
+    container.style.maxWidth = containerMaxWidth + 'px';
 
-        return window.innerWidth;
-    }
+    const wrapperElem = document.querySelector('#wrapper');
 
-    /**
-     |--------------------------------------------------------------------------
-     | setting
-     |--------------------------------------------------------------------------
-     */
-    /**
-     * clmtrackr
-     */
-    const ctracker = new clm.tracker();
+    const buttons = document.querySelector('.buttons');
 
-    /**
-     * tracking canvas
-     */
-    const trackingCanvas    = document.getElementById('tracking-canvas');
-    const trackingCanvasCtx = trackingCanvas.getContext('2d');
+    const faceStyleElem = document.querySelector('.face-style-wrapper');
 
-    /**
-     * 顔座標のindex
-     * scaleX(-1) している場合(前面カメラ利用時)、座標が鏡のように左右入れ替わるので
-     * それを補填する
-     */
-    const faceCoordinateIndexForMapping = [
-        // 輪郭
-        {'from': 0,  'to' : 14},
-        {'from': 1,  'to' : 13},
-        {'from': 2,  'to' : 12},
-        {'from': 3,  'to' : 11},
-        {'from': 4,  'to' : 10},
-        {'from': 5,  'to' : 9},
-        {'from': 6,  'to' : 8},
-        {'from': 7,  'to' : 7},
-        {'from': 8,  'to' : 6},
-        {'from': 9,  'to' : 5},
-        {'from': 10, 'to' : 4},
-        {'from': 11, 'to' : 3},
-        {'from': 12, 'to' : 2},
-        {'from': 13, 'to' : 1},
-        {'from': 14, 'to' : 0},
-        // 左眉
-        {'from': 19, 'to' : 15},
-        {'from': 20, 'to' : 16},
-        {'from': 21, 'to' : 17},
-        {'from': 22, 'to' : 18},
-        // 左目
-        {'from': 24, 'to' : 29},
-        {'from': 27, 'to' : 32},
-        {'from': 26, 'to' : 31},
-        {'from': 66, 'to' : 70},
-        {'from': 23, 'to' : 28},
-        {'from': 63, 'to' : 67},
-        {'from': 64, 'to' : 68},
-        {'from': 25, 'to' : 30},
-        {'from': 65, 'to' : 69},
-        // 右眉
-        {'from': 18, 'to' : 22},
-        {'from': 17, 'to' : 21},
-        {'from': 16, 'to' : 20},
-        {'from': 15, 'to' : 19},
-        // 右目
-        {'from': 29, 'to' : 24},
-        {'from': 32, 'to' : 27},
-        {'from': 31, 'to' : 26},
-        {'from': 69, 'to' : 65},
-        {'from': 30, 'to' : 25},
-        {'from': 68, 'to' : 64},
-        {'from': 67, 'to' : 63},
-        {'from': 28, 'to' : 23},
-        {'from': 70, 'to' : 66},
-        // 鼻
-        {'from': 33, 'to' : 33},
-        {'from': 41, 'to' : 41},
-        {'from': 62, 'to' : 62},
-        {'from': 37, 'to' : 37},
-        {'from': 34, 'to' : 40},
-        {'from': 35, 'to' : 39},
-        {'from': 36, 'to' : 38},
-        {'from': 42, 'to' : 43},
-        {'from': 43, 'to' : 42},
-        {'from': 38, 'to' : 36},
-        {'from': 39, 'to' : 35},
-        {'from': 40, 'to' : 34},
-        // 口
-        {'from': 47, 'to' : 47},
-        {'from': 46, 'to' : 48},
-        {'from': 45, 'to' : 49},
-        {'from': 44, 'to' : 50},
-        {'from': 61, 'to' : 59},
-        {'from': 60, 'to' : 60},
-        {'from': 56, 'to' : 58},
-        {'from': 57, 'to' : 57},
-        {'from': 55, 'to' : 51},
-        {'from': 54, 'to' : 52},
-        {'from': 53, 'to' : 53},
-        {'from': 52, 'to' : 54},
-        {'from': 51, 'to' : 55},
-        {'from': 50, 'to' : 44},
-        {'from': 58, 'to' : 56},
-        {'from': 59, 'to' : 61},
-        {'from': 49, 'to' : 45},
-        {'from': 48, 'to' : 46},
-    ];
+    const faceAlphaSlider = document.querySelector('#face-alpha-range');
+    const faceAlphaVal = document.querySelector('.face-alpha-val');
+    let faceAlpha = 0.85;
+    faceAlphaSlider.value  = faceAlpha;
+    faceAlphaVal.innerHTML = faceAlpha.toFixed(2);
+    faceAlphaSlider.addEventListener('input', (e) => {
+        const alpha = parseFloat(e.target.value);
+        faceAlpha = alpha;
+        faceAlphaVal.innerHTML = alpha.toFixed(2);
+    });
+    const disabledFaceAlphaSlider = () => faceAlphaSlider.disabled = true;
+    const enabledFaceAlphaSlider = () => faceAlphaSlider.disabled = false;
 
-    /**
-     * debug
-     */
-    const overlay  = document.getElementById('overlay');
-    const forDebug = document.getElementById('for-debug');
-    let isDebug = false;
-    forDebug.addEventListener('change', (e) => {
-        if (e.target.checked) {
-            isDebug = true;
-            overlay.classList.remove('fadein');
-            overlay.classList.add('fadeout');
-        } else {
-            isDebug = false;
-            overlay.classList.remove('fadeout');
-            overlay.classList.add('fadein');
-        }
+    const faceCanvas = document.createElement('canvas');
+    const faceCanvasCtx = faceCanvas.getContext('2d');
+    let imgCanvas = null;
+    let imgCanvasCtx = null;
+
+    const viewElem = document.querySelector('.view');
+    let defaultViewElemWidth = 0;
+    let defaultViewElemHeight = 0;
+    const setDefaultViewElemSize = elem => {
+        defaultViewElemWidth = elem.clientWidth;
+        defaultViewElemHeight = elem.clientHeight;
+    };
+    const getDefaultViewElemWidth = () => defaultViewElemWidth;
+    const getDefaultViewElemHeight = () => defaultViewElemHeight;
+    viewElem.addEventListener('click', (e) => {
+        readFileElem.click();
+    });
+    viewElem.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        viewElem.classList.add('dropover');
+    });
+    viewElem.addEventListener('drop', (e) => {
+        e.preventDefault();
+        viewElem.classList.remove('dropover');
+        readFile(e.dataTransfer.files[0]);
+    });
+    viewElem.addEventListener('dragleave', (e) => {
+        viewElem.classList.remove('dropover');
     });
 
-    /**
-     * Switching the camera
-     */
-    const facingMode = document.getElementById('facing-mode');
-    facingMode.addEventListener('change', (e) => v2c.switchCamera());
+    // face position.
+    let facePosition = {
+        "isTop" : true,
+        "isRight" : true
+    };
+    const facePositionIsTop = () => facePosition.isTop;
+    const facePositionIsRight = () => facePosition.isRight;
+    const setFacePosition = v => {
+        switch (v) {
+            case '1': // Top, Right
+                facePosition.isTop = true;
+                facePosition.isRight = true;
+                break;
+            case '2': // Top, Left
+                facePosition.isTop = true;
+                facePosition.isRight = false;
+                break;
+            case '3': // Bottom, Right
+                facePosition.isTop = false;
+                facePosition.isRight = true;
+                break;
+            case '4': // Bottom, Left
+                facePosition.isTop = false;
+                facePosition.isRight = false;
+                break;
+        }
+    }
 
-    /**
-     |--------------------------------------------------------------------------
-     | start
-     |--------------------------------------------------------------------------
-     */
-    // v2c
+    const facePositionList = document.querySelector('#face-position-list');
+    setFacePosition(facePositionList.value);
+    facePositionList.addEventListener('change', (e) => {
+        setFacePosition(e.target.value);
+        adjustFaceCanvasPosition();
+    });
+
+    const facePrivacy = document.querySelector('#face-privacy');
+    let facePrivacyVal = facePrivacy.value;
+    facePrivacy.addEventListener('change', (e) => {
+        facePrivacyVal = e.target.value;
+    });
+    const disabledFacePrivacy = () => facePrivacy.disabled = true;
+    const enabledFacePrivacy = () => facePrivacy.disabled = false;
+
+    const reselect = document.querySelector('#reselect');
+    reselect.addEventListener('click', (e) => {
+        readFileElem.click();
+    });
+
+    const readFileElem = document.querySelector('#read-file');
+    readFileElem.addEventListener('change', (e) => {
+        readFile(e.target.files[0]);
+    });
+
+    const readFile = file => {
+        if (file === undefined) { // Reselectボタン押下で画像選択がキャンセルされた場合
+            return;
+        }
+        if (!file.type.match('image.*')) {
+            alert('画像を選択してください');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.addEventListener('load', () => {
+            const content     = reader.result;
+            const fileType    = file.type;
+            const orientation = getOrientation(content);
+
+            const img = new Image();
+            img.src = arrayBufferToDataURL(content, fileType);
+            img.addEventListener('load', () => {
+                window.URL.revokeObjectURL(img.src);
+                const canvas = createTransformedCanvas(orientation, img, viewElem);
+                addCanvasToViewElem(canvas, viewElem);
+                postLoadProcessing();
+            });
+        });
+
+        reader.readAsArrayBuffer(file);
+    }
+
+    // https://qiita.com/zaru/items/0ce7757c721ebd170683
+    const getOrientation = buffer => {
+        const dv = new DataView(buffer);
+        let app1MarkerStart = 2;
+        // もし JFIF で APP0 Marker がある場合は APP1 Marker の取得位置をずらす
+        if (dv.getUint16(app1MarkerStart) !== 65505) {
+            const length = dv.getUint16(4);
+            app1MarkerStart += length + 2;
+        }
+
+        if (dv.getUint16(app1MarkerStart) !== 65505) {
+            return 0;
+        }
+
+        // エンディアンを取得
+        const littleEndian = dv.getUint8(app1MarkerStart + 10) === 73;
+        // フィールドの数を確認
+        const count = dv.getUint16(app1MarkerStart + 18, littleEndian);
+        for (let i = 0; i < count; i++) {
+            const start = app1MarkerStart + 20 + i * 12;
+            const tag = dv.getUint16(start, littleEndian);
+            // Orientation の Tag は 274
+            if (tag === 274) {
+                // Orientation は Type が SHORT なので 2byte だけ読む
+                return dv.getUint16(start + 8, littleEndian);
+            }
+        }
+
+        return 0;
+    }
+
+    const arrayBufferToDataURL = (arrBuf, type) => {
+        const blob = new Blob([arrBuf], { type: type });
+        return window.URL.createObjectURL(blob);
+    }
+
+    // https://qiita.com/zaru/items/0ce7757c721ebd170683
+    const createTransformedCanvas = (orientation, img, viewElem) => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+
+        const scale = calcScale(img.width, img.height);
+        const destW = Math.floor(img.width * scale);
+        const destH = Math.floor(img.height * scale);
+
+        if ([5,6,7,8].indexOf(orientation) > -1) {
+            canvas.width  = destH;
+            canvas.height = destW;
+        } else {
+            canvas.width  = destW;
+            canvas.height = destH;
+        }
+
+        switch (orientation) {
+            case 2: ctx.transform(-1, 0, 0, 1, destW, 0); break;
+            case 3: ctx.transform(-1, 0, 0, -1, destW, destH); break;
+            case 4: ctx.transform(1, 0, 0, -1, 0, destH); break;
+            case 5: ctx.transform(0, 1, 1, 0, 0, 0); break;
+            case 6: ctx.transform(0, 1, -1, 0, destH, 0); break;
+            case 7: ctx.transform(0, -1, -1, 0, destH, destW); break;
+            case 8: ctx.transform(0, -1, 1, 0, 0, destW); break;
+        }
+
+        ctx.drawImage(img, 0, 0, img.width, img.height, 0, 0, destW, destH);
+
+        canvas.setAttribute('id', 'img-canvas');
+
+        return canvas;
+    }
+
+    const calcScale = (w, h) => {
+        if (w >= h && w >= getDefaultViewElemWidth()) {
+            return getDefaultViewElemWidth() / w;
+        }
+
+        if (h >= w && h >= getDefaultViewElemHeight()) {
+            return getDefaultViewElemHeight() / h;
+        }
+
+        return 1;
+    }
+
+    const addCanvasToViewElem = (canvas, viewElem) => {
+        viewElem.classList.add('after-render');
+        viewElem.style.height = canvas.height + 'px';
+
+        viewElem.textContent = null;
+        viewElem.appendChild(canvas);
+    }
+
+    const postLoadProcessing = () => {
+        imgCanvas = document.querySelector('#img-canvas');
+        imgCanvasCtx = imgCanvas.getContext('2d');
+
+        faceCanvas.width = 0;
+        faceCanvas.height = 0;
+        faceCanvas.style.position = 'relative';
+        viewElem.appendChild(faceCanvas);
+
+        buttons.classList.remove('hidden');
+        faceStyleElem.classList.remove('hidden');
+
+        startRender();
+    }
+
+    // Callback function after initialization.
+    const callbackOnAfterInit = v2c => {
+        viewElem.classList.remove('disp-none');
+        viewElem.style.width = wrapperElem.clientWidth + 'px';
+
+        setDefaultViewElemSize(viewElem);
+
+        wrapperElem.insertBefore(viewElem, wrapperElem.firstChild);
+
+        v2c.getCanvas().style.position = 'absolute';
+        v2c.changeLongSideSize(specifyVideoSize());
+    }
+
+    const specifyVideoSize = () => {
+        if (wrapperElem.clientWidth <= 320) {
+            return 240;
+        }
+        if (wrapperElem.clientWidth <= 480) {
+            return 320;
+        }
+        return 480;
+    }
+
+    const callbackOnLoadedmetadataVideo = video => {
+        startCtracker(video);
+    }
+
+    const callbackOnAfterVideoLoadError = err => {
+        alert(err);
+    }
+
     const option = {
-        'longSideSize': longSideSize,
-        'canvasId': 'from-camera',
-        'videoId': 'camera',
-        'useFrontCamera': facingMode.value !== "0",
-        'callbackOnOrientationChange': callbackOnOrientationChange,
+        'longSideSize': wrapperElem.clientWidth,
+        'callbackOnAfterInit': callbackOnAfterInit,
         'callbackOnLoadedmetadataVideo': callbackOnLoadedmetadataVideo,
         'callbackOnAfterVideoLoadError': callbackOnAfterVideoLoadError,
     };
 
-    const v2c = new V2C('#video-canvas-wrapper', option);
-    v2c.start((canvas) => drawLoop(canvas, v2c.useFrontCamera()));
+    const ctracker = new clm.tracker();
 
-    function callbackOnOrientationChange(video) {
-        trackingCanvas.width = video.width;
-        restartCtracker(video);
-    }
-
-    function callbackOnLoadedmetadataVideo(video) {
-        initCtracker(video);
-
-        trackingCanvas.width  = video.width;
-        trackingCanvas.height = Math.round(video.height + (video.height / 2));
-
-        overlay.style.display = 'block';
-        overlay.style.height  = (video.height + 2) + 'px';
-    };
-
-    function callbackOnAfterVideoLoadError() {
-        overlay.style.display = 'none';
-    }
-
-    function initCtracker(video) {
+    const startCtracker = video => {
         ctracker.init();
         ctracker.start(video);
     }
 
-    function restartCtracker(video) {
+    const stopCtracker = () => {
         ctracker.stop();
-        ctracker.reset();
-        ctracker.start(video);
     }
 
-    function drawLoop(video_canvas, useFrontCamera) {
-        clearCanvas(trackingCanvas, trackingCanvasCtx);
+    const v2c = new V2C('#wrapper', option);
 
-        if (isDebug === true) {
-            ctracker.draw(video_canvas);
+    const startButton = document.querySelector('#start');
+    startButton.addEventListener('click', (e) => {
+        startRender();
+    });
+
+    const startRender = () => {
+        startButton.classList.add('active');
+        enabledFaceAlphaSlider();
+        enabledFacePrivacy();
+        setUseFrontCamera(v2c.useFrontCamera());
+        v2c.start((canvas) => drawLoop(canvas, v2c.useFrontCamera()));
+    }
+
+    const stopButton = document.querySelector('#stop');
+    stopButton.addEventListener('click', (e) => {
+        startButton.classList.remove('active');
+        disabledFaceAlphaSlider();
+        disabledFacePrivacy();
+        stopCtracker();
+        v2c.stop();
+    });
+
+    const captureButton = document.querySelector('#capture');
+    captureButton.addEventListener('click', (e) => {
+        capture();
+    });
+
+    const switchCameraButton = document.querySelector('#switch-camera');
+    switchCameraButton.addEventListener('click', (e) => {
+        v2c.switchCamera();
+        setUseFrontCamera(v2c.useFrontCamera());
+        startButton.classList.add('active');
+        enabledFaceAlphaSlider();
+        enabledFacePrivacy();
+    });
+
+    let _useFrontCamera = false;
+    const setUseFrontCamera = useFrontCamera => {
+        _useFrontCamera = useFrontCamera;
+
+        if (_useFrontCamera === true) {
+            faceCanvas.style.transform = 'scaleX(-1)';
+        } else {
+            faceCanvas.style.transform = 'scaleX(1)';
         }
+    }
+    const useFrontCamera = () => _useFrontCamera;
 
-        const positionsFromCtracker = ctracker.getCurrentPosition();
-        const positions = swapPosition(useFrontCamera, positionsFromCtracker);
-
+    const drawLoop = (canvas, useFrontCamera) => {
+        // ctracker.draw(canvas);
+        const positions = ctracker.getCurrentPosition();
         if (positions !== false) {
-            const faceWidth = faceSize(positionsFromCtracker).width;
-            drawFace(trackingCanvasCtx, positions, faceWidth, useFrontCamera);
+            renderFaceCanvas(positions, canvas);
+        } else {
+            clearFaceCanvas();
         }
-
-        if (isDebug === true && positions !== false) {
-            drawFacePosition(video_canvas.getContext('2d'), positions);
-        }
-
-        _stats();
     }
 
-    function clearCanvas(canvas, ctx) {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const clearFaceCanvas = () => {
+        faceCanvas.width  = 0;
+        faceCanvas.height = 0;
+        faceCanvasCtx.clearRect(0, 0, faceCanvas.width, faceCanvas.height);
     }
 
-    function swapPosition(useFrontCamera, positions) {
-        if (positions === false) {
-            return false;
-        }
+    /**
+     * render faceCanvas
+     */
+    const renderFaceCanvas = (p, canvas) => {
+        // 顔部分のマージン設定
+        let scale = 1 / 10;
+        let marginOfTopScale    = 9 * scale;  // 顔部分の何%分上にマージンを取るか(marginOfBottomScaleとの調整が必要)
+        let marginOfBottomScale = 12 * scale; // 顔部分の何%分下にマージンを取るか(marginOfTopScaleとの調整が必要)
+        let marginOfLeftScale   = 4 * scale;  // 顔部分の何%分左にマージンを取るか(marginOfRightScaleとの調整が必要)
+        let marginOfRightScale  = 8 * scale;  // 顔部分の何%分右にマージンを取るか(marginOfLeftScaleとの調整が必要)
 
-        if (useFrontCamera === false) {
-            return positions;
-        }
-
-        let afterSwappingPosition = [];
-        for (let i=0;i<faceCoordinateIndexForMapping.length;i++) {
-            afterSwappingPosition[faceCoordinateIndexForMapping[i].to] = positions[faceCoordinateIndexForMapping[i].from];
-        }
-
-        return afterSwappingPosition;
-    }
-
-    function faceSize(p) {
-        // https://auduno.github.io/clmtrackr/examples/media/facemodel_numbering_new.png
+        // 顔領域の矩形座標を求める
         const indexOfMinX = [0, 1, 2, 3, 4, 5, 6, 7, 19, 20];
+        const indexOfMinY = [0, 1, 2, 12, 13, 14, 15, 16, 19, 20];
         const indexOfMaxX = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+        const indexOfMaxY = [3, 4, 5, 6, 7, 8, 9, 10, 11];
+        const coordinatesOfFace = calcRangeOfCoordinates(p, indexOfMinX, indexOfMinY, indexOfMaxX, indexOfMaxY);
 
-        let min = {'x': 100000};
-        let max = {'x': 0};
+        const faceW = coordinatesOfFace.maxX - coordinatesOfFace.minX;
+        const faceH = coordinatesOfFace.maxY - coordinatesOfFace.minY;
+        const faceMargin = faceH * scale;
+
+        // 顔検出部分の面積調整(少し広めにしたりとか)
+        // transform: scaleX(-1); している場合sxとswの関係性が逆転します
+        let sx = coordinatesOfFace.minX - (faceW * marginOfLeftScale);
+        let sy = coordinatesOfFace.minY - (faceH * marginOfTopScale);
+        let sw = faceW + (faceW * marginOfRightScale);
+        let sh = faceH + (faceH * marginOfBottomScale);
+
+        const vcw = canvas.width;
+        const vch = canvas.height;
+
+        // 画面上に顔切り取り部分が見切れた場合
+        if (sy < 0) {
+            sy += Math.abs(sy);
+        }
+
+        // 画面下に顔切り取り部分が見切れた場合
+        const assignedMarginBottom = Math.round((marginOfBottomScale - marginOfTopScale) * 10);
+        const marginOfBottom       = faceMargin * assignedMarginBottom;
+        if (coordinatesOfFace.maxY + marginOfBottom > vch) {
+            sy -= (coordinatesOfFace.maxY + marginOfBottom) - vch;
+        }
+
+        // 画面左に顔切り取り部分が見切れた場合
+        const assignedMarginLeft = Math.round((marginOfRightScale - marginOfLeftScale) * 10);
+        const marginOfLeft       = faceMargin * assignedMarginLeft;
+        if (coordinatesOfFace.maxX + marginOfLeft > vcw) {
+            sx -= (coordinatesOfFace.maxX + marginOfLeft) - vcw;
+        }
+
+        // 画面右に顔切り取り部分が見切れた場合
+        if (sx < 0) {
+            sx += Math.abs(sx);
+        }
+
+        // 顔が見切れた場合
+        if (
+            coordinatesOfFace.maxX > vcw
+            || coordinatesOfFace.maxY > vch
+            || coordinatesOfFace.minX < 0
+            || coordinatesOfFace.minY < 0
+        ) {
+            // clearFaceCanvas();
+            return;
+        }
+
+        const targetSize = imgCanvas.width <= imgCanvas.height ? imgCanvas.width : imgCanvas.height;
+
+        let clippedSizeFactor = 1.0;
+        if (targetSize / 3 < sw) {
+            clippedSizeFactor = (targetSize / 3) / sw;
+        }
+
+        const w = Math.round(sw * clippedSizeFactor);
+        const h = Math.round(sh * clippedSizeFactor);
+
+        faceCanvasCtx.clearRect(0, 0, w, h);
+
+        faceCanvas.width  = w;
+        faceCanvas.height = h;
+
+        // 目領域の矩形座標を求める
+        const indexOfMinEyeX = [19, 20, 23];
+        const indexOfMinEyeY = [24, 29, 63, 64, 67, 68];
+        const indexOfMaxEyeX = [15, 16, 28];
+        const indexOfMaxEyeY = [23, 25, 26, 28, 30, 31, 65, 66, 69, 70];
+        const coordinatesOfEyes = calcRangeOfCoordinates(p, indexOfMinEyeX, indexOfMinEyeY, indexOfMaxEyeX, indexOfMaxEyeY);
+
+        const eyeW = coordinatesOfEyes.maxX - coordinatesOfEyes.minX;
+        const eyeH = coordinatesOfEyes.maxY - coordinatesOfEyes.minY;
+
+        // for privacy.
+        privacy(facePrivacyVal, canvas, coordinatesOfEyes, eyeW, eyeH);
+
+        faceCanvasCtx.globalAlpha = faceAlpha;
+        faceCanvasCtx.arc(w/2, h/2, w/2, 0, Math.PI * 2, true);
+        faceCanvasCtx.clip();
+
+        faceCanvasCtx.drawImage(
+            canvas,
+            Math.round(sx),
+            Math.round(sy),
+            Math.round(sw),
+            Math.round(sh),
+            0,
+            0,
+            w,
+            h
+        );
+
+        var grad = faceCanvasCtx.createRadialGradient(w/2, h/2, w/2.5, w/2, h/2, w/2);
+        grad.addColorStop(0,   'rgba(255, 255, 255, 0)');
+        grad.addColorStop(0.8, 'rgba(255, 255, 255, 0.7)');
+        grad.addColorStop(1,   'rgba(255, 255, 255, 0.9)');
+        faceCanvasCtx.fillStyle = grad;
+        faceCanvasCtx.fill();
+
+        adjustFaceCanvasPosition();
+    }
+
+    /**
+     * 矩形座標を求める
+     * @link http://blog.phalusamil.com/entry/2016/07/09/150751
+     */
+    const calcRangeOfCoordinates = (p, indexOfMinX, indexOfMinY, indexOfMaxX, indexOfMaxY) => {
+        let min = {'x': 100000, 'y': 100000};
+        let max = {'x': 0, 'y': 0};
 
         for (let i = 0; i < indexOfMinX.length; i++) {
             let k = indexOfMinX[i];
             min.x = min.x > p[k][0] ? p[k][0] : min.x;
         }
+        for (let i = 0; i < indexOfMinY.length; i++) {
+            let k = indexOfMinY[i];
+            min.y = min.y > p[k][1] ? p[k][1] : min.y;
+        }
         for (let i = 0; i < indexOfMaxX.length; i++) {
             let k = indexOfMaxX[i];
             max.x = max.x < p[k][0] ? p[k][0] : max.x;
         }
-
-        return {"width" : max.x - min.x, "height": max.y - min.y};
-    }
-
-    function drawFacePosition(ctx, p) {
-        for (let i=0;i<p.length;i++) {
-            ctx.fillText(i, p[i][0], p[i][1]);
-        }
-    }
-
-    function drawFace(ctx, p, faceWidth, useFrontCamera) {
-        // add style
-        settingBaseStyle(ctx);
-
-        // draw
-        _drawFace(ctx, p, faceWidth, useFrontCamera)
-
-        // 輪郭 (じ)
-        drawFaceLine(ctx, p, faceWidth, useFrontCamera);
-    }
-
-    function settingBaseStyle(ctx) {
-        ctx.fillStyle   = 'rgba(255, 0, 0, 1)';
-        ctx.strokeStyle = 'rgba(255, 0, 0, 1)';
-        ctx.lineWidth   = 2;
-    }
-
-    let forceDrawByFillText = false;
-    let forMeasurementTime  = null;
-    let fillTextCnt         = 0;
-    function _drawFace(ctx, p, faceWidth, useFrontCamera) {
-        if (forceDrawByFillText) {
-            drawByFillText(ctx, p, faceWidth, useFrontCamera);
-
-            if (forMeasurementTime === null) {
-                forMeasurementTime = (new Date()).getTime();
-            }
-
-            if (((new Date()).getTime() - forMeasurementTime) / 1000 >= 5) { // 一定秒数描画し終わったらフラグを折る
-                forceDrawByFillText = false;
-                forMeasurementTime = null;
-            }
-
-            return;
+        for (let i = 0; i < indexOfMaxY.length; i++) {
+            let k = indexOfMaxY[i];
+            max.y = max.y < p[k][1] ? p[k][1] : max.y;
         }
 
-        if (Math.floor(Math.random() * 10) + 1 <= 2) {
-            drawByFillText(ctx, p, faceWidth, useFrontCamera);
-
-            if (++fillTextCnt >= 15) { // 一定回数以上切り替わったらフラグを立てる
-                forceDrawByFillText = true;
-                fillTextCnt = 0;
-            }
-
-            return;
-        }
-
-        drawByStroke(ctx, p, faceWidth, useFrontCamera);
+        return {
+            'minX': Math.round(min.x),
+            'minY': Math.round(min.y),
+            'maxX': Math.round(max.x),
+            'maxY': Math.round(max.y)
+        };
     }
 
-    function drawByFillText(ctx, p, faceWidth, useFrontCamera) {
-        const cssFontFamily = '-apple-system,BlinkMacSystemFont,\"Segoe UI\",Roboto,\"Helvetica Neue\",Arial,sans-serif,\"Apple Color Emoji\",\"Segoe UI Emoji\",\"Segoe UI Symbol\",\"Noto Color Emoji\"';
-        const scale = getScale(faceWidth);
-
-        // 左眉 (へ)
-        ctx.save();
-        const leftEyebrowsTxt = 'へ';
-        const leftEyebrowsSize = getSize(48, scale);
-        ctx.font = `${leftEyebrowsSize}px ${cssFontFamily}`;
-        const leftEyebrowsAdjustPosition = ctx.measureText(leftEyebrowsTxt).width / 2;
-        const leftEyebrowsX = calcMeasureX(useFrontCamera, p[20][0], (p[21][0] - p[20][0]) / 2) - leftEyebrowsAdjustPosition;
-        const leftEyebrowsY = p[20][1] + leftEyebrowsAdjustPosition;
-        ctx.fillText(leftEyebrowsTxt, leftEyebrowsX, leftEyebrowsY);
-        ctx.restore();
-
-        // 左目 (の)
-        ctx.save();
-        const leftEyeTxt = 'の';
-        const leftEyeSize = getSize(48, scale);
-        ctx.font = `${leftEyeSize}px ${cssFontFamily}`;
-        const leftEyeAdjustPosition = ctx.measureText(leftEyeTxt).width / 2;
-        const leftEyeX = calcMeasureX(useFrontCamera, p[27][0]) - leftEyeAdjustPosition;
-        const leftEyeY = p[27][1] + leftEyeAdjustPosition;
-        ctx.fillText(leftEyeTxt, leftEyeX, leftEyeY);
-        ctx.restore();
-
-        // 右眉 (へ)
-        ctx.save();
-        const rightEyebrowsTxt = 'へ';
-        const rightEyebrowsSize = getSize(48, scale);
-        ctx.font = `${rightEyebrowsSize}px ${cssFontFamily}`;
-        const rightEyebrowsAdjustPosition = ctx.measureText(rightEyebrowsTxt).width / 2;
-        const rightEyebrowsX = calcMeasureX(useFrontCamera, p[17][0], (p[16][0] - p[17][0]) / 2) - rightEyebrowsAdjustPosition;
-        const rightEyebrowsY = p[17][1] + rightEyebrowsAdjustPosition;
-        ctx.fillText(rightEyebrowsTxt, rightEyebrowsX, rightEyebrowsY);
-        ctx.restore();
-
-        // 右目 (の)
-        ctx.save();
-        const rightEyeTxt = 'の';
-        const rightEyeSize = getSize(48, scale);
-        ctx.font = `${rightEyeSize}px ${cssFontFamily}`;
-        const rightEyeAdjustPosition = ctx.measureText(rightEyeTxt).width / 2;
-        const rightEyeX = calcMeasureX(useFrontCamera, p[32][0]) - rightEyeAdjustPosition;
-        const rightEyeY = p[32][1] + rightEyeAdjustPosition;
-        ctx.fillText(rightEyeTxt, rightEyeX, rightEyeY);
-        ctx.restore();
-
-        // 鼻 (も)
-        ctx.save();
-        const noseTxt = 'も';
-        const noseSize = getSize(60, scale);
-        ctx.font = `${noseSize}px ${cssFontFamily}`;
-        const noseAdjustPosition = ctx.measureText(noseTxt).width / 2;
-        const noseX = calcMeasureX(useFrontCamera, p[41][0], (p[41][0] - p[62][0]) / 2) - noseAdjustPosition;
-        const noseY = p[41][1] + (p[62][1] - p[41][1]) / 2 + noseAdjustPosition;
-        ctx.fillText(noseTxt, noseX, noseY);
-        ctx.restore();
-
-        // 口 (へ)
-        ctx.save();
-        const lipTxt = 'へ';
-        const lipSize = getSize(60, scale);
-        ctx.font = `${lipSize}px ${cssFontFamily}`;
-        const lipAdjustPosition = ctx.measureText(lipTxt).width;
-        const lipX = calcMeasureX(useFrontCamera, p[57][0]) - lipAdjustPosition / 2;
-        const lipY = p[57][1] + lipAdjustPosition / 3;
-        ctx.fillText(lipTxt, lipX, lipY);
-        ctx.restore();
-    }
-
-    function getScale(faceWidth) {
-        let scale = 1.0;
-
-        if (faceWidth <= 180) {
-            scale = 0.7;
-        }
-        if (faceWidth >= 330) {
-            scale = 1.5;
-        }
-        if (faceWidth >= 420) {
-            scale = 2;
-        }
-
-        return scale;
-    }
-
-    function getSize(fontSize, scale) {
-        return Math.round(fontSize * scale);
-    }
-
-    function drawByStroke(ctx, p, faceWidth, useFrontCamera) {
-        ctx.save();
-
-        ctx.lineWidth = faceWidth >= 420 ? 6 : 4;
-
-        // 左眉 (へ)
-        const leftEyebrows = [19, 20, 22];
-        drawLine(ctx, p, leftEyebrows, useFrontCamera);
-
-        // 左目 (の)
-        const leftEye = [24, 27, 26, 66, 23, 63, 24, 64, 25];
-        drawLine(ctx, p, leftEye, useFrontCamera);
-
-        // 右眉 (へ)
-        const rightEyebrows = [18, 17, 15];
-        drawLine(ctx, p, rightEyebrows, useFrontCamera);
-        // 右目 (の)
-        const rightEye = [29, 32, 31, 69, 30, 68, 29, 67, 28];
-        drawLine(ctx, p, rightEye, useFrontCamera);
-
-        // 鼻 (も)
-        const nosePosition = [];
-        const targetOfNosePositions = [41, 62, 37, 58];
-        for (let i=0;i<targetOfNosePositions.length;i++) {
-            nosePosition.push(p[targetOfNosePositions[i]]);
-        }
-        const noseLastPosition = [p[39][0] - (p[39][0] - p[38][0]) / 2, p[39][1] - (p[39][1] - p[38][1]) / 2];
-        nosePosition.push(noseLastPosition);
-
-        drawNose(ctx, nosePosition, 3, useFrontCamera);
-        drawLine(ctx, p, [40, 34], useFrontCamera); // upper line.
-        drawLine(ctx, p, [43, 42], useFrontCamera); // under line.
-
-        // 口 (へ)
-        const lip = [44, 45, 60, 51];
-        drawLine(ctx, p, lip, useFrontCamera);
-
-        ctx.restore();
-    }
-
-    function drawFaceLine(ctx, p, faceWidth, useFrontCamera) {
-        const scale = getScale(faceWidth);
-
-        ctx.save();
-
-        ctx.lineWidth = faceWidth >= 420 ? 6 : 4;
-
-        for (let i=0;i<11;i++) {
-            ctx.beginPath();
-
-            ctx.moveTo(calcMeasureX(useFrontCamera, p[i][0]), p[i][1]);
-            ctx.lineTo(calcMeasureX(useFrontCamera, p[i+1][0]), p[i+1][1]);
-
-            if (i===10) { // じの濁点
-                ctx.moveTo(calcMeasureX(useFrontCamera, p[i+3][0]) + 10 * scale, p[i+3][1] + 30 * scale);
-                ctx.lineTo(calcMeasureX(useFrontCamera, p[i+3][0]) + 5  * scale, p[i+3][1] + 5  * scale);
-
-                ctx.moveTo(calcMeasureX(useFrontCamera, p[i+3][0]) + 20 * scale, p[i+3][1] + 30 * scale);
-                ctx.lineTo(calcMeasureX(useFrontCamera, p[i+3][0]) + 15 * scale, p[i+3][1] + 5  * scale);
-            }
-
-            ctx.closePath();
-            ctx.stroke();
-        }
-
-        ctx.restore();
-    }
-
-    function drawNose(ctx, nosePosition, controlPointIndex, useFrontCamera) {
-        for (let i = 0; i < nosePosition.length; i++) {
-
-            let current = nosePosition[i];
-            let next    = nosePosition[i+1];
-
-            // control points
-            if (i === controlPointIndex) {
-                let prev = nosePosition[i-1];
-                ctx.beginPath();
-                ctx.moveTo(calcMeasureX(useFrontCamera, prev[0]), prev[1]);
-                ctx.quadraticCurveTo(
-                    calcMeasureX(useFrontCamera, current[0]), current[1],
-                    calcMeasureX(useFrontCamera, next[0]), next[1]
-                );
-                ctx.stroke();
-                continue;
-            }
-
-            if (
-                i === controlPointIndex - 1
-                || i === controlPointIndex + 1
-                || next === undefined
-            ) {
-                continue;
-            }
-
-            draw(ctx, current, next, useFrontCamera);
-        }
-    }
-
-    function drawLine(ctx, p, linePosition, useFrontCamera) {
-        for (let i = 0; i < linePosition.length; i++) {
-            let current = p[linePosition[i]];
-            let next    = p[linePosition[i+1]];
-
-            if (next === undefined) {
+    const privacy = (facePrivacyVal, canvas, coordinates, w, h) => {
+        switch (facePrivacyVal) {
+            case "1":
+                eyeLine(canvas, coordinates.minX - 10, coordinates.minY - 5, w + 20, h + 10);
                 break;
+            case "2":
+                mosaic(canvas, coordinates.minX - 10, coordinates.minY - 5, w + 20, h + 10);
+                break;
+            default:
+                break;
+        }
+    }
+
+    const eyeLine = (canvas, sx, sy, cw, ch) => {
+        const ctx = canvas.getContext('2d');
+        const imageData = ctx.getImageData(sx, sy, cw, ch);
+        const data = imageData.data;
+
+        for(let i = 0; i < data.length; i += 4) {
+            data[i]     = 0;
+            data[i + 1] = 0;
+            data[i + 2] = 0;
+        }
+
+        ctx.putImageData(imageData, sx, sy);
+    }
+
+    const mosaic = (canvas, sx, sy, cw, ch) => {
+        const size = 16;
+        const ctx = canvas.getContext('2d');
+        const imageData = ctx.getImageData(sx, sy, cw, ch);
+        const data = imageData.data;
+
+        for (let x = 0; x < cw; x += size) {
+            for (let y = 0; y < ch; y += size) {
+                let index = (x + y * cw) * 4;
+                let r = data[index + 0];
+                let g = data[index + 1];
+                let b = data[index + 2];
+
+                for (let x2 = 0; x2 < size; x2++) {
+                    for (let y2 = 0; y2 < size; y2++) {
+                        let i = (cw * (y + y2) * 4) + ((x + x2) * 4)
+                        data[i + 0] = r;
+                        data[i + 1] = g;
+                        data[i + 2] = b;
+                    }
+                }
             }
-
-            draw(ctx, current, next, useFrontCamera);
-        }
-    }
-
-    function draw(ctx, current, next, useFrontCamera) {
-        ctx.beginPath();
-        ctx.moveTo(calcMeasureX(useFrontCamera, current[0]), current[1]);
-        ctx.lineTo(calcMeasureX(useFrontCamera, next[0]), next[1]);
-        ctx.closePath();
-        ctx.stroke();
-    }
-
-    function calcMeasureX (useFrontCamera, width, adjust) {
-        const _adjust = adjust === undefined ? 0 : adjust;
-
-        if (useFrontCamera) {
-            return trackingCanvas.width - width - _adjust;
         }
 
-        return width + _adjust;
+        ctx.putImageData(imageData, sx, sy);
     }
 
-    /**
-     |--------------------------------------------------------------------------
-     | stats
-     |--------------------------------------------------------------------------
-     */
-    function _stats() {
-        body.dispatchEvent(event);
+    const adjustFaceCanvasPosition = () => {
+        faceCanvas.style.top  = calcPositionTop(imgCanvas, faceCanvas, facePositionIsTop()) + 'px';
+        faceCanvas.style.left = calcPositionLeft(imgCanvas, faceCanvas, facePositionIsRight()) + 'px';
     }
-    const body = document.querySelector('body');
-    // Create the event.
-    const event = document.createEvent('Event');
-    // Define that the event name is 'build'.
-    event.initEvent('drawLoop', true, true);
 
-    const stats = new Stats();
-    stats.domElement.style.position = 'absolute';
-    stats.domElement.style.top  = '1em';
-    stats.domElement.style.left = '1.5em';
-    body.appendChild(stats.domElement);
+    const calcPositionTop = (img, face, isTopSide) => {
+        const imgH  = imgCanvas.height;
+        const faceW = faceCanvas.width;
+        const faceH = faceCanvas.height;
 
-    // Update stats on every iteration.
-    document.addEventListener('drawLoop', (e) => stats.update(), false);
+        const fitSize   = faceH * Math.floor((imgH / 2) / faceH);
+        const remainder = (imgH / 2) % faceH;
+        const totalGap  = fitSize + remainder;
+        const top       = Math.floor(totalGap - faceH + (faceH / 2) + (faceH - faceW) / 4);
+
+        return isTopSide === true ? -top : top;
+    }
+
+    const calcPositionLeft = (img, face, isRightSide) => {
+        const imgW  = imgCanvas.width;
+        const faceW = faceCanvas.width;
+        const faceH = faceCanvas.height;
+
+        const fitSize   = faceW * Math.floor((imgW / 2) / faceW);
+        const remainder = (imgW / 2) % faceW;
+        const totalGap  = fitSize + remainder;
+        const left      = Math.floor(totalGap - faceW + (faceW / 2) - (faceH - faceW) / 4);
+
+        return isRightSide === true ? left : -left;
+    }
+
+    const capture = () => {
+        const link    = document.createElement('a');
+        const dataUrl = getDataUrl(imgCanvas, faceCanvas);
+
+        wrapperElem.appendChild(link);
+
+        link.setAttribute('download', 'paulmauriat.png');
+        link.setAttribute('target', '_blank');
+        link.addEventListener('click', (e) => e.target.href = dataUrl);
+        link.click();
+
+        wrapperElem.removeChild(link);
+    }
+
+    const getDataUrl = (imgCanvas, faceCanvas) => {
+        const w  = imgCanvas.width;
+        const h  = imgCanvas.height;
+        const fw = faceCanvas.width;
+        const fh = faceCanvas.height;
+
+        const c   = document.createElement('canvas');
+        const ctx = c.getContext('2d');
+
+        c.width = w;
+        c.height = h;
+
+        // 画像を描画
+        ctx.drawImage(imgCanvas, 0, 0, w, h);
+
+        // 顔を描画(再度別のcanvasに描画しないとscaleが反映されなかった)
+        const fc = redrawFaceCanvas(faceCanvas, fw, fh);
+        const dx = calcPositionDX(imgCanvas, faceCanvas, facePositionIsRight());
+        const dy = calcPositionDY(imgCanvas, faceCanvas, facePositionIsTop());
+        ctx.drawImage(fc, 0, 0, fw, fh, dx, dy, fw, fh);
+
+        return c.toDataURL();
+    }
+
+    const redrawFaceCanvas = (faceCanvas, w, h) => {
+        const c   = document.createElement('canvas');
+        const ctx = c.getContext('2d');
+
+        if (w === 0 || h === 0) {
+            return c;
+        }
+
+        c.width = w;
+        c.height = h;
+        if (useFrontCamera() === true) {
+            ctx.scale(-1, 1);
+            ctx.drawImage(faceCanvas, -w, 0, w, h);
+        } else {
+            ctx.drawImage(faceCanvas, 0, 0, w, h);
+        }
+
+        return c;
+    }
+
+    const calcPositionDX = (img, face, isRightSide) => {
+        const imgW  = imgCanvas.width;
+        const faceW = faceCanvas.width;
+        const faceH = faceCanvas.height;
+
+        if (isRightSide === false) return Math.floor((faceH - faceW) / 4);
+
+        const fitSize   = faceW * Math.floor(imgW / faceW);
+        const remainder = imgW % faceW;
+        const totalGap  = fitSize + remainder;
+
+        return Math.floor(totalGap - faceW - ((faceH - faceW) / 4));
+    }
+
+    const calcPositionDY = (img, face, isTopSide) => {
+        const imgH  = imgCanvas.height;
+        const faceW = faceCanvas.width;
+        const faceH = faceCanvas.height;
+
+        if (isTopSide === true) return Math.floor( - ((faceH - faceW) / 4));
+
+        const fitSize   = faceH * Math.floor(imgH / faceH);
+        const remainder = imgH % faceH;
+        const totalGap  = fitSize + remainder;
+
+        return Math.floor(totalGap - faceH + ((faceH - faceW) / 4));
+    }
 });
