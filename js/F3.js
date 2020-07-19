@@ -6,7 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const leftEyeCanvas = document.querySelector('#left-eye');
     const leftEyeCanvasCtx = leftEyeCanvas.getContext('2d');
     const leftEyeParts = document.querySelector('#left-eye-parts');
-    let showLeftEyeParts = true;
+    let showLeftEyeParts = leftEyeParts.checked;
     leftEyeParts.addEventListener('change', (e) => {
         showLeftEyeParts = e.target.checked;
     });
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const rightEyeCanvas = document.querySelector('#right-eye');
     const rightEyeCanvasCtx = rightEyeCanvas.getContext('2d');
     const rightEyeParts = document.querySelector('#right-eye-parts');
-    let showRightEyeParts = true;
+    let showRightEyeParts = rightEyeParts.checked;
     rightEyeParts.addEventListener('change', (e) => {
         showRightEyeParts = e.target.checked;
     });
@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const noseCanvas = document.querySelector('#nose');
     const noseCanvasCtx = noseCanvas.getContext('2d');
     const noseParts = document.querySelector('#nose-parts');
-    let showNoseParts = true;
+    let showNoseParts = noseParts.checked;;
     noseParts.addEventListener('change', (e) => {
         showNoseParts = e.target.checked;
     });
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const mouthCanvas = document.querySelector('#mouth');
     const mouthCanvasCtx = mouthCanvas.getContext('2d');
     const mouthParts = document.querySelector('#mouth-parts');
-    let showMouthParts = true;
+    let showMouthParts = mouthParts.checked;;
     mouthParts.addEventListener('change', (e) => {
         showMouthParts = e.target.checked;
     });
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * debug
      */
     const forDebug = document.querySelector('#for-debug');
-    let isDebug = false;
+    let isDebug = forDebug.checked;
     forDebug.addEventListener('change', (e) => {
         if (e.target.checked) {
             isDebug = true;
@@ -51,6 +51,19 @@ document.addEventListener('DOMContentLoaded', () => {
             isDebug = false;
             overlay.classList.remove('fadeout');
             overlay.classList.add('fadein');
+        }
+    });
+
+    /**
+     * privacy
+     */
+    const privacy = document.querySelector('#privacy');
+    let isPrivate = privacy.checked;
+    privacy.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            isPrivate = true;
+        } else {
+            isPrivate = false;
         }
     });
 
@@ -81,43 +94,6 @@ document.addEventListener('DOMContentLoaded', () => {
             mouthCanvas.style.transform = 'scaleX(1)';
         }
     }
-
-    const getMeasurementSize = () => {
-        let _o = window.orientation;
-        let _orientation = _o === undefined ? 90 : _o;
-        if (_orientation === 0 || _orientation === 180) {
-            return window.innerHeight;
-        }
-        return window.innerWidth;
-    }
-    const longSideSize = getMeasurementSize();
-
-    const callbackOnLoadedmetadataVideo = video => {
-        startCtracker(video);
-
-        overlay.style.display = 'block';
-        overlay.style.width   = (video.width + 2) + 'px';
-        overlay.style.height  = (video.height + 2) + 'px';
-    }
-
-    const startCtracker = video => {
-        ctracker.init();
-        ctracker.start(video);
-    }
-
-    const callbackOnAfterVideoLoadError = err => {
-        alert(err);
-    }
-
-    const option = {
-        'longSideSize': longSideSize,
-        'callbackOnLoadedmetadataVideo': callbackOnLoadedmetadataVideo,
-        'callbackOnAfterVideoLoadError': callbackOnAfterVideoLoadError,
-    };
-
-    const v2c = new V2C('#wrapper', option);
-    setUseFrontCamera(v2c.useFrontCamera());
-    v2c.start((canvas) => drawLoop(canvas, v2c.useFrontCamera()));
 
     /**
      * 顔座標のindex
@@ -205,22 +181,42 @@ document.addEventListener('DOMContentLoaded', () => {
         {'from': 48, 'to' : 46},
     ];
 
-    const swapPosition = (useFrontCamera, positions) => {
-        if (positions === false) {
-            return false;
+    const getMeasurementSize = () => {
+        let _o = window.orientation;
+        let _orientation = _o === undefined ? 90 : _o;
+        if (_orientation === 0 || _orientation === 180) {
+            return window.innerHeight;
         }
-
-        if (useFrontCamera === false) {
-            return positions;
-        }
-
-        let afterSwappingPosition = [];
-        for (let i=0;i<faceCoordinateIndexForMapping.length;i++) {
-            afterSwappingPosition[faceCoordinateIndexForMapping[i].to] = positions[faceCoordinateIndexForMapping[i].from];
-        }
-
-        return afterSwappingPosition;
+        return window.innerWidth;
     }
+    const longSideSize = getMeasurementSize();
+
+    const callbackOnLoadedmetadataVideo = video => {
+        startCtracker(video);
+
+        overlay.style.display = 'block';
+        overlay.style.width   = (video.width + 2) + 'px';
+        overlay.style.height  = (video.height + 2) + 'px';
+    }
+
+    const startCtracker = video => {
+        ctracker.init();
+        ctracker.start(video);
+    }
+
+    const callbackOnAfterVideoLoadError = err => {
+        alert(err);
+    }
+
+    const option = {
+        'longSideSize': longSideSize,
+        'callbackOnLoadedmetadataVideo': callbackOnLoadedmetadataVideo,
+        'callbackOnAfterVideoLoadError': callbackOnAfterVideoLoadError,
+    };
+
+    const v2c = new V2C('#wrapper', option);
+    setUseFrontCamera(v2c.useFrontCamera());
+    v2c.start((canvas) => drawLoop(canvas, v2c.useFrontCamera()));
 
     const drawLoop = (canvas, useFrontCamera) => {
         const positionsFromCtracker = ctracker.getCurrentPosition();
@@ -228,25 +224,25 @@ document.addEventListener('DOMContentLoaded', () => {
         if (positions !== false) {
 
             if (showLeftEyeParts) {
-                renderFaceCanvas(positions, canvas, leftEyeCanvas, leftEyeCanvasCtx, [19, 23], [20, 21], [22, 25], [26, 65, 66], useFrontCamera);
+                renderFaceCanvas('leftEye', positions, canvas, leftEyeCanvas, leftEyeCanvasCtx, [19, 23], [20, 21], [22, 25], [26, 65, 66], useFrontCamera);
             } else if (!showLeftEyeParts) {
                 clearFaceCanvas(leftEyeCanvas, leftEyeCanvasCtx);
             }
 
             if (showRightEyeParts) {
-                renderFaceCanvas(positions, canvas, rightEyeCanvas, rightEyeCanvasCtx, [18, 30], [16, 17], [15, 28], [31, 69, 70], useFrontCamera);
+                renderFaceCanvas('rightEye', positions, canvas, rightEyeCanvas, rightEyeCanvasCtx, [18, 30], [16, 17], [15, 28], [31, 69, 70], useFrontCamera);
             } else if (!showRightEyeParts) {
                 clearFaceCanvas(rightEyeCanvas, rightEyeCanvasCtx);
             }
 
             if (showNoseParts) {
-                renderFaceCanvas(positions, canvas, noseCanvas, noseCanvasCtx, [34, 35, 36], [33], [38, 39, 40], [36, 37, 38], useFrontCamera, true);
+                renderFaceCanvas('nose', positions, canvas, noseCanvas, noseCanvasCtx, [34, 35, 36], [33], [38, 39, 40], [36, 37, 38], useFrontCamera, true);
             } else if (!showNoseParts) {
                 clearFaceCanvas(noseCanvas, noseCanvasCtx);
             }
 
             if (showMouthParts) {
-                renderFaceCanvas(positions, canvas, mouthCanvas, mouthCanvasCtx, [44, 45, 55], [45, 46, 47, 48, 49], [49, 50, 51], [51, 52, 53, 54, 55], useFrontCamera);
+                renderFaceCanvas('mouth', positions, canvas, mouthCanvas, mouthCanvasCtx, [44, 45, 55], [45, 46, 47, 48, 49], [49, 50, 51], [51, 52, 53, 54, 55], useFrontCamera);
             } else if (!showMouthParts) {
                 clearFaceCanvas(mouthCanvas, mouthCanvasCtx);
             }
@@ -266,6 +262,23 @@ document.addEventListener('DOMContentLoaded', () => {
         _stats();
     }
 
+    const swapPosition = (useFrontCamera, positions) => {
+        if (positions === false) {
+            return false;
+        }
+
+        if (useFrontCamera === false) {
+            return positions;
+        }
+
+        let afterSwappingPosition = [];
+        for (let i=0;i<faceCoordinateIndexForMapping.length;i++) {
+            afterSwappingPosition[faceCoordinateIndexForMapping[i].to] = positions[faceCoordinateIndexForMapping[i].from];
+        }
+
+        return afterSwappingPosition;
+    }
+
     const drawFacePosition = (ctx, p) => {
         for (let i=0;i<p.length;i++) {
             ctx.fillText(i, p[i][0], p[i][1]);
@@ -282,27 +295,27 @@ document.addEventListener('DOMContentLoaded', () => {
      * render
      */
     const renderFaceCanvas = (
-        p, canvas, targetCanvas, targetCanvasCtx,
+        partsName, p, canvas, targetCanvas, targetCanvasCtx,
         indexOfMinX, indexOfMinY, indexOfMaxX, indexOfMaxY,
         useFrontCamera, isNose = false
     ) => {
         // マージン設定
         let scale = isNose ? 1 / 35 : 1 / 15;
-        let marginOfTopScale    = 9 * scale;  // 顔部分の何%分上にマージンを取るか(marginOfBottomScaleとの調整が必要)
-        let marginOfBottomScale = 16 * scale; // 顔部分の何%分下にマージンを取るか(marginOfTopScaleとの調整が必要)
-        let marginOfLeftScale   = 4 * scale;  // 顔部分の何%分左にマージンを取るか(marginOfRightScaleとの調整が必要)
-        let marginOfRightScale  = 8 * scale;  // 顔部分の何%分右にマージンを取るか(marginOfLeftScaleとの調整が必要)
+        let marginOfTopScale    = isNose ? 8 * scale : 8 * scale;  // 該当パーツの何%分上にマージンを取るか(marginOfBottomScaleとの調整が必要)
+        let marginOfBottomScale = isNose ? 12 * scale : 17 * scale; // 該当パーツの何%分下にマージンを取るか(marginOfTopScaleとの調整が必要)
+        let marginOfLeftScale   = 4 * scale;  // 該当パーツの何%分左にマージンを取るか(marginOfRightScaleとの調整が必要)
+        let marginOfRightScale  = 8 * scale;  // 該当パーツの何%分右にマージンを取るか(marginOfLeftScaleとの調整が必要)
 
-        const coordinatesOfFace = calcRangeOfCoordinates(p, indexOfMinX, indexOfMinY, indexOfMaxX, indexOfMaxY, useFrontCamera);
-        const faceW = coordinatesOfFace.maxX - coordinatesOfFace.minX;
-        const faceH = coordinatesOfFace.maxY - coordinatesOfFace.minY;
+        const coordinatesOfParts = calcRangeOfCoordinates(p, indexOfMinX, indexOfMinY, indexOfMaxX, indexOfMaxY, useFrontCamera);
+        const partsW = coordinatesOfParts.maxX - coordinatesOfParts.minX;
+        const partsH = coordinatesOfParts.maxY - coordinatesOfParts.minY;
 
         // 顔検出部分の面積調整(少し広めにしたりとか)
         // transform: scaleX(-1); している場合sxとswの関係性が逆転します
-        let sx = isNose ? coordinatesOfFace.minX : coordinatesOfFace.minX - (faceW * marginOfLeftScale);
-        let sy = coordinatesOfFace.minY - (faceH * marginOfTopScale);
-        let sw = isNose ? faceW : faceW + (faceW * marginOfRightScale);
-        let sh = faceH + (faceH * marginOfBottomScale);
+        let sx = isNose ? coordinatesOfParts.minX : coordinatesOfParts.minX - (partsW * marginOfLeftScale);
+        let sy = coordinatesOfParts.minY - (partsH * marginOfTopScale);
+        let sw = isNose ? partsW : partsW + (partsW * marginOfRightScale);
+        let sh = partsH + (partsH * marginOfBottomScale);
 
         const w = Math.round(sw);
         const h = Math.round(sh);
@@ -312,7 +325,9 @@ document.addEventListener('DOMContentLoaded', () => {
         targetCanvas.width  = w;
         targetCanvas.height = h;
 
-        // privacy(canvas, p, useFrontCamera);
+        if (isPrivate) {
+            addPrivacy(canvas, p, useFrontCamera);
+        }
 
         targetCanvasCtx.drawImage(
             canvas,
@@ -326,10 +341,95 @@ document.addEventListener('DOMContentLoaded', () => {
             h
         );
 
-        targetCanvas.style.top = coordinatesOfFace.minY - (faceH * marginOfTopScale) + 'px';
+        const _distance = distance(partsName);
+        const _angle = angle(partsName);
 
-        const adjust = isNose ? 0 : (faceW * marginOfLeftScale);
-        targetCanvas.style.left = calcMeasureX(useFrontCamera, canvas, coordinatesOfFace.minX + w) + adjust + 'px';
+        const topPosition = coordinatesOfParts.minY - (partsH * marginOfTopScale);
+        const y = _distance * Math.sin(_angle) + topPosition;
+        targetCanvas.style.top = Math.round(y) + 'px';
+
+        const adjust = isNose ? 0 : (partsW * marginOfLeftScale);
+        const leftPosition = calcMeasureX(useFrontCamera, canvas, coordinatesOfParts.minX + w) + adjust;
+        const x = _distance * Math.cos(_angle) + leftPosition;
+        targetCanvas.style.left = Math.round(x) + 'px';
+    }
+
+    let _angles = {
+        'leftEye': 0,
+        'rightEye': 0,
+        'nose': 0,
+        'mouth': 0,
+    };
+    const angle = (name) => {
+        const n = Math.ceil(Math.random() * 12);
+        switch (n) {
+            case 1:
+            case 2:
+            case 3:
+                return _angles[name] += (Math.ceil(Math.random() * 5)/10) * Math.PI / 180;
+            default:
+                return _angles[name] -= (Math.ceil(Math.random() * 10)/10) * Math.PI / 180;
+        }
+    }
+
+    // let _distance = 0;
+    // let _add = true;
+    // const distance = (name) => {
+    //     if (name !== 'leftEye') {
+    //         return _distance <= 0 ? 0 : _distance;
+    //     }
+
+    //     if (_add === true) {
+    //         _distance += Math.ceil(Math.random() * 3);
+    //         if (_distance >= 200) {
+    //             _add = false;
+    //         }
+    //         return _distance;
+    //     }
+
+    //     if (_add === false) {
+    //         _distance -= Math.ceil(Math.random() * 15) / 10;
+    //         if (_distance <= -100) {
+    //             _add = true;
+    //             return _distance = 0;
+    //         }
+    //         if (_distance <= 0) {
+    //             return 0;
+    //         }
+    //         return _distance;
+    //     }
+    // }
+
+    let _distances = {
+        'leftEye': {'distance': 0, 'add': true},
+        'rightEye': {'distance': 0, 'add': true},
+        'nose': {'distance': 0, 'add': true},
+        'mouth': {'distance': 0, 'add': true},
+    };
+    const distance = (name) => {
+        if (isDebug) {
+            _distances[name].distance -= 5;
+            if (_distances[name].distance <= 0) {
+                return _distances[name].distance = 0;
+            }
+            return _distances[name].distance;
+        }
+
+        if (_distances[name].add === true) {
+            _distances[name].distance += Math.ceil(Math.random() * 5);
+            if (_distances[name].distance >= 200) {
+                _distances[name].add = false;
+            }
+            return _distances[name].distance;
+        }
+
+        if (_distances[name].add === false) {
+            _distances[name].distance -= Math.ceil(Math.random() * 15) / 10;
+            if (_distances[name].distance <= 0) {
+                _distances[name].add = true;
+            }
+            return _distances[name].distance;
+        }
     }
 
     /**
@@ -381,7 +481,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return width;
     }
 
-    const privacy = (canvas, p, useFrontCamera) => {
+    const addPrivacy = (canvas, p, useFrontCamera) => {
+        // 目領域の矩形座標を求める
         const indexOfMinEyeX = [19, 20, 23];
         const indexOfMinEyeY = [24, 29, 63, 64, 67, 68];
         const indexOfMaxEyeX = [15, 16, 28];
@@ -391,8 +492,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const eyeW = coordinatesOfEyes.maxX - coordinatesOfEyes.minX;
         const eyeH = coordinatesOfEyes.maxY - coordinatesOfEyes.minY;
 
-        eyeLine(canvas, coordinatesOfEyes.minX - 10, coordinatesOfEyes.minY - 5, eyeW + 20, eyeH + 10);
-        // mosaic(canvas, coordinatesOfEyes.minX - 10, coordinatesOfEyes.minY - 5, eyeW + 20, eyeH + 10);
+        // eyeLine(canvas, coordinatesOfEyes.minX - 10, coordinatesOfEyes.minY - 5, eyeW + 20, eyeH + 10);
+        mosaic(canvas, coordinatesOfEyes.minX - 10, coordinatesOfEyes.minY - 5, eyeW + 20, eyeH + 10);
     }
 
     const eyeLine = (canvas, sx, sy, cw, ch) => {
