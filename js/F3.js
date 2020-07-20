@@ -361,76 +361,98 @@ document.addEventListener('DOMContentLoaded', () => {
         'mouth': 0,
     };
     const angle = (name) => {
-        const n = Math.ceil(Math.random() * 12);
+        const n = Math.ceil(Math.random() * 2);
+        if (name === 'rightEye') {
+            switch (n) {
+                case 1:
+                    return _angles[name] -= (Math.ceil(Math.random() * 5)/10) * Math.PI / 180;
+                default:
+                    return _angles[name] += (Math.ceil(Math.random() * 10)/10) * Math.PI / 180;
+            }
+        }
+        if (name === 'nose') {
+            switch (n) {
+                case 1:
+                    return _angles[name] -= (Math.ceil(Math.random() * 5)/10) * Math.PI / 270;
+                default:
+                    return _angles[name] += (Math.ceil(Math.random() * 10)/10) * Math.PI / 270;
+            }
+        }
+        if (name === 'mouth') {
+            switch (n) {
+                case 1:
+                    return _angles[name] += (Math.ceil(Math.random() * 5)/10) * Math.PI / 270;
+                default:
+                    return _angles[name] -= (Math.ceil(Math.random() * 10)/10) * Math.PI / 270;
+            }
+        }
         switch (n) {
             case 1:
-            case 2:
-            case 3:
                 return _angles[name] += (Math.ceil(Math.random() * 5)/10) * Math.PI / 180;
             default:
                 return _angles[name] -= (Math.ceil(Math.random() * 10)/10) * Math.PI / 180;
         }
     }
 
-    // let _distance = 0;
-    // let _add = true;
-    // const distance = (name) => {
-    //     if (name !== 'leftEye') {
-    //         return _distance <= 0 ? 0 : _distance;
-    //     }
-
-    //     if (_add === true) {
-    //         _distance += Math.ceil(Math.random() * 3);
-    //         if (_distance >= 200) {
-    //             _add = false;
-    //         }
-    //         return _distance;
-    //     }
-
-    //     if (_add === false) {
-    //         _distance -= Math.ceil(Math.random() * 15) / 10;
-    //         if (_distance <= -100) {
-    //             _add = true;
-    //             return _distance = 0;
-    //         }
-    //         if (_distance <= 0) {
-    //             return 0;
-    //         }
-    //         return _distance;
-    //     }
-    // }
-
-    let _distances = {
-        'leftEye': {'distance': 0, 'add': true},
-        'rightEye': {'distance': 0, 'add': true},
-        'nose': {'distance': 0, 'add': true},
-        'mouth': {'distance': 0, 'add': true},
-    };
+    let _distance = 0;
+    let _add = true;
     const distance = (name) => {
-        if (isDebug) {
-            _distances[name].distance -= 5;
-            if (_distances[name].distance <= 0) {
-                return _distances[name].distance = 0;
-            }
-            return _distances[name].distance;
+        if (name !== 'leftEye') {
+            return _distance <= 0 ? 0 : _distance;
         }
 
-        if (_distances[name].add === true) {
-            _distances[name].distance += Math.ceil(Math.random() * 5);
-            if (_distances[name].distance >= 200) {
-                _distances[name].add = false;
+        if (_add === true) {
+            _distance += Math.ceil(Math.random() * 3);
+            if (_distance >= 200) {
+                _add = false;
             }
-            return _distances[name].distance;
+            return _distance;
         }
 
-        if (_distances[name].add === false) {
-            _distances[name].distance -= Math.ceil(Math.random() * 15) / 10;
-            if (_distances[name].distance <= 0) {
-                _distances[name].add = true;
+        if (_add === false) {
+            _distance -= Math.ceil(Math.random() * 15) / 10;
+            if (_distance <= -100) {
+                _add = true;
+                return _distance = 0;
             }
-            return _distances[name].distance;
+            if (_distance <= 0) {
+                return 0;
+            }
+            return _distance;
         }
     }
+
+    // let _distances = {
+    //     'leftEye': {'distance': 0, 'add': true},
+    //     'rightEye': {'distance': 0, 'add': true},
+    //     'nose': {'distance': 0, 'add': true},
+    //     'mouth': {'distance': 0, 'add': true},
+    // };
+    // const distance = (name) => {
+    //     if (isDebug) {
+    //         _distances[name].distance -= 5;
+    //         if (_distances[name].distance <= 0) {
+    //             return _distances[name].distance = 0;
+    //         }
+    //         return _distances[name].distance;
+    //     }
+
+    //     if (_distances[name].add === true) {
+    //         _distances[name].distance += Math.ceil(Math.random() * 5);
+    //         if (_distances[name].distance >= 200) {
+    //             _distances[name].add = false;
+    //         }
+    //         return _distances[name].distance;
+    //     }
+
+    //     if (_distances[name].add === false) {
+    //         _distances[name].distance -= Math.ceil(Math.random() * 15) / 10;
+    //         if (_distances[name].distance <= 0) {
+    //             _distances[name].add = true;
+    //         }
+    //         return _distances[name].distance;
+    //     }
+    // }
 
     /**
      * 矩形座標を求める
