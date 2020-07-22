@@ -240,7 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (showNoseParts) {
-                renderFaceCanvas('nose', positions, canvas, noseCanvas, noseCanvasCtx, [34, 35, 36], [33], [38, 39, 40], [36, 37, 38], useFrontCamera, true);
+                renderFaceCanvas('nose', positions, canvas, noseCanvas, noseCanvasCtx, [34, 35, 36], [41], [38, 39, 40], [36, 37, 38], useFrontCamera);
             } else if (!showNoseParts) {
                 clearFaceCanvas(noseCanvas, noseCanvasCtx);
             }
@@ -301,23 +301,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderFaceCanvas = (
         partsName, p, canvas, targetCanvas, targetCanvasCtx,
         indexOfMinX, indexOfMinY, indexOfMaxX, indexOfMaxY,
-        useFrontCamera, isNose = false
+        useFrontCamera
     ) => {
+        const isNose = partsName === 'nose';
+
         // マージン設定
         let scale = isNose ? 1 / 35 : 1 / 15;
-        let marginOfTopScale    = isNose ? 8 * scale : 8 * scale;  // 該当パーツの何%分上にマージンを取るか(marginOfBottomScaleとの調整が必要)
-        let marginOfBottomScale = isNose ? 12 * scale : 17 * scale; // 該当パーツの何%分下にマージンを取るか(marginOfTopScaleとの調整が必要)
-        let marginOfLeftScale   = 4 * scale;  // 該当パーツの何%分左にマージンを取るか(marginOfRightScaleとの調整が必要)
-        let marginOfRightScale  = 8 * scale;  // 該当パーツの何%分右にマージンを取るか(marginOfLeftScaleとの調整が必要)
+        let marginOfTopScale    = isNose ? 8 * scale : 8 * scale; // 該当パーツの何%分上にマージンを取るか(marginOfBottomScaleとの調整が必要)
+        let marginOfBottomScale = isNose ? 18 * scale : 17 * scale; // 該当パーツの何%分下にマージンを取るか(marginOfTopScaleとの調整が必要)
+        let marginOfLeftScale   = 4 * scale; // 該当パーツの何%分左にマージンを取るか(marginOfRightScaleとの調整が必要)
+        let marginOfRightScale  = 8 * scale; // 該当パーツの何%分右にマージンを取るか(marginOfLeftScaleとの調整が必要)
 
         const coordinatesOfParts = calcRangeOfCoordinates(p, indexOfMinX, indexOfMinY, indexOfMaxX, indexOfMaxY, useFrontCamera);
         const partsW = coordinatesOfParts.maxX - coordinatesOfParts.minX;
         const partsH = coordinatesOfParts.maxY - coordinatesOfParts.minY;
 
         // 検出部分の面積調整(少し広めにしたりとか)
-        let sx = isNose ? coordinatesOfParts.minX : coordinatesOfParts.minX - (partsW * marginOfLeftScale);
+        let sx = coordinatesOfParts.minX - (partsW * marginOfLeftScale);
         let sy = coordinatesOfParts.minY - (partsH * marginOfTopScale);
-        let sw = isNose ? partsW : partsW + (partsW * marginOfRightScale);
+        let sw = partsW + (partsW * marginOfRightScale);
         let sh = partsH + (partsH * marginOfBottomScale);
 
         const w = Math.round(sw);
@@ -347,8 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const y = _distance * Math.sin(_angle) + topPosition;
         targetCanvas.style.top = Math.round(y) + 'px';
 
-        const adjust = isNose ? 0 : (partsW * marginOfLeftScale);
-        const leftPosition = calcMeasureX(useFrontCamera, canvas, coordinatesOfParts.minX + w) + adjust;
+        const leftPosition = calcMeasureX(useFrontCamera, canvas, coordinatesOfParts.minX + w) + (partsW * marginOfLeftScale);
         const x = _distance * Math.cos(_angle) + leftPosition;
         targetCanvas.style.left = Math.round(x) + 'px';
     }
@@ -393,65 +394,37 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    let _distance = 0;
-    let _add = true;
+    let _distances = {
+        'leftEye': {'distance': 0, 'add': true},
+        'rightEye': {'distance': 0, 'add': true},
+        'nose': {'distance': 0, 'add': true},
+        'mouth': {'distance': 0, 'add': true},
+    };
     const distance = (name) => {
-        if (name !== 'leftEye') {
-            return _distance <= 0 ? 0 : _distance;
+        if (isDebug) {
+            _distances[name].distance -= 5;
+            if (_distances[name].distance <= 0) {
+                return _distances[name].distance = 0;
+            }
+            return _distances[name].distance;
         }
 
-        if (_add === true) {
-            _distance += Math.ceil(Math.random() * 3);
-            if (_distance >= 400) {
-                _add = false;
+        if (_distances[name].add === true) {
+            _distances[name].distance += Math.ceil(Math.random() * 5);
+            if (_distances[name].distance >= 400) {
+                _distances[name].add = false;
             }
-            return _distance;
+            return _distances[name].distance;
         }
 
-        if (_add === false) {
-            _distance -= Math.ceil(Math.random() * 15) / 10;
-            if (_distance <= -100) {
-                _add = true;
-                return _distance = 0;
+        if (_distances[name].add === false) {
+            _distances[name].distance -= Math.ceil(Math.random() * 30) / 10;
+            if (_distances[name].distance <= 0) {
+                _distances[name].add = true;
             }
-            if (_distance <= 0) {
-                return 0;
-            }
-            return _distance;
+            return _distances[name].distance;
         }
     }
-
-    // let _distances = {
-    //     'leftEye': {'distance': 0, 'add': true},
-    //     'rightEye': {'distance': 0, 'add': true},
-    //     'nose': {'distance': 0, 'add': true},
-    //     'mouth': {'distance': 0, 'add': true},
-    // };
-    // const distance = (name) => {
-    //     if (isDebug) {
-    //         _distances[name].distance -= 5;
-    //         if (_distances[name].distance <= 0) {
-    //             return _distances[name].distance = 0;
-    //         }
-    //         return _distances[name].distance;
-    //     }
-
-    //     if (_distances[name].add === true) {
-    //         _distances[name].distance += Math.ceil(Math.random() * 5);
-    //         if (_distances[name].distance >= 200) {
-    //             _distances[name].add = false;
-    //         }
-    //         return _distances[name].distance;
-    //     }
-
-    //     if (_distances[name].add === false) {
-    //         _distances[name].distance -= Math.ceil(Math.random() * 15) / 10;
-    //         if (_distances[name].distance <= 0) {
-    //             _distances[name].add = true;
-    //         }
-    //         return _distances[name].distance;
-    //     }
-    // }
 
     /**
      * 矩形座標を求める
@@ -503,18 +476,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const addPrivacy = (canvas, p, useFrontCamera) => {
-        // 目領域の矩形座標を求める
-        const indexOfMinEyeX = [19, 20, 23];
-        const indexOfMinEyeY = [24, 29, 63, 64, 67, 68];
-        const indexOfMaxEyeX = [15, 16, 28];
-        const indexOfMaxEyeY = [23, 25, 26, 28, 30, 31, 65, 66, 69, 70];
-        const coordinatesOfEyes = calcRangeOfCoordinates(p, indexOfMinEyeX, indexOfMinEyeY, indexOfMaxEyeX, indexOfMaxEyeY, useFrontCamera);
+        const _leftEyeCoordinates = leftEyeCoordinates(p, useFrontCamera);
+        const _rightEyeCoordinates = rightEyeCoordinates(p, useFrontCamera);
 
-        const eyeW = coordinatesOfEyes.maxX - coordinatesOfEyes.minX;
-        const eyeH = coordinatesOfEyes.maxY - coordinatesOfEyes.minY;
+        const leftEyeW = _leftEyeCoordinates.maxX - _leftEyeCoordinates.minX;
+        const leftEyeH = _leftEyeCoordinates.maxY - _leftEyeCoordinates.minY;
 
-        // eyeLine(canvas, coordinatesOfEyes.minX - 10, coordinatesOfEyes.minY - 5, eyeW + 20, eyeH + 10);
-        mosaic(canvas, coordinatesOfEyes.minX - 10, coordinatesOfEyes.minY - 5, eyeW + 20, eyeH + 10);
+        const rightEyeW = _leftEyeCoordinates.maxX - _leftEyeCoordinates.minX;
+        const rightEyeH = _rightEyeCoordinates.maxY - _rightEyeCoordinates.minY;
+
+        // eyeLine(canvas, _leftEyeCoordinates.minX - 10, _leftEyeCoordinates.minY - 5, leftEyeW + 20, leftEyeH + 10);
+        // eyeLine(canvas, _rightEyeCoordinates.minX - 10, _rightEyeCoordinates.minY - 5, rightEyeW + 20, rightEyeH + 10);
+        mosaic(canvas, _leftEyeCoordinates.minX - 10, _leftEyeCoordinates.minY - 5, leftEyeW + 20, leftEyeH + 10);
+        mosaic(canvas, _rightEyeCoordinates.minX - 10, _rightEyeCoordinates.minY - 5, rightEyeW + 20, rightEyeH + 10);
+    }
+
+    const leftEyeCoordinates = (p, useFrontCamera) => {
+        const indexOfMinEyeX = [19];
+        const indexOfMinEyeY = [24, 63, 64];
+        const indexOfMaxEyeX = [22];
+        const indexOfMaxEyeY = [26, 65, 66];
+        return calcRangeOfCoordinates(p, indexOfMinEyeX, indexOfMinEyeY, indexOfMaxEyeX, indexOfMaxEyeY, useFrontCamera);
+    }
+
+    const rightEyeCoordinates = (p, useFrontCamera) => {
+        const indexOfMinEyeX = [30];
+        const indexOfMinEyeY = [29, 68, 67];
+        const indexOfMaxEyeX = [15];
+        const indexOfMaxEyeY = [31, 69, 70];
+        return calcRangeOfCoordinates(p, indexOfMinEyeX, indexOfMinEyeY, indexOfMaxEyeX, indexOfMaxEyeY, useFrontCamera);
     }
 
     const eyeLine = (canvas, sx, sy, cw, ch) => {
@@ -563,7 +553,7 @@ document.addEventListener('DOMContentLoaded', () => {
      | stats
      |--------------------------------------------------------------------------
      */
-    function _stats() {
+    const _stats = () => {
         body.dispatchEvent(event);
     }
     const body = document.querySelector('body');
