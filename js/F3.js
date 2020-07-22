@@ -402,7 +402,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (_add === true) {
             _distance += Math.ceil(Math.random() * 3);
-            if (_distance >= 200) {
+            if (_distance >= 400) {
                 _add = false;
             }
             return _distance;
