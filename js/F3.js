@@ -223,6 +223,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const positions = swapPosition(useFrontCamera, positionsFromCtracker);
         if (positions !== false) {
 
+            if (isPrivate) {
+                addPrivacy(canvas, positions, useFrontCamera);
+            }
+
             if (showLeftEyeParts) {
                 renderFaceCanvas('leftEye', positions, canvas, leftEyeCanvas, leftEyeCanvasCtx, [19, 23], [20, 21], [22, 25], [26, 65, 66], useFrontCamera);
             } else if (!showLeftEyeParts) {
@@ -310,8 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const partsW = coordinatesOfParts.maxX - coordinatesOfParts.minX;
         const partsH = coordinatesOfParts.maxY - coordinatesOfParts.minY;
 
-        // 顔検出部分の面積調整(少し広めにしたりとか)
-        // transform: scaleX(-1); している場合sxとswの関係性が逆転します
+        // 検出部分の面積調整(少し広めにしたりとか)
         let sx = isNose ? coordinatesOfParts.minX : coordinatesOfParts.minX - (partsW * marginOfLeftScale);
         let sy = coordinatesOfParts.minY - (partsH * marginOfTopScale);
         let sw = isNose ? partsW : partsW + (partsW * marginOfRightScale);
@@ -324,10 +327,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         targetCanvas.width  = w;
         targetCanvas.height = h;
-
-        if (isPrivate) {
-            addPrivacy(canvas, p, useFrontCamera);
-        }
 
         targetCanvasCtx.drawImage(
             canvas,
@@ -361,7 +360,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'mouth': 0,
     };
     const angle = (name) => {
-        const n = Math.ceil(Math.random() * 2);
+        const n = Math.ceil(Math.random() * 3);
         if (name === 'rightEye') {
             switch (n) {
                 case 1:
