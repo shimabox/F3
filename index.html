@@ -139,6 +139,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const rightEyeParts = document.querySelector('#right-eye-parts');
     setUpFaceParts(faceTracker, rightEye, rightEyeParts, 'rightEye');
 
+    const rightEyeBlow = new RightEyeBlow(document.createElement('canvas'));
+    setUpFaceParts(faceTracker, rightEyeBlow, rightEyeParts, 'rightEyeBlow');
+
     const nose = new Nose(document.createElement('canvas'));
     const noseParts = document.querySelector('#nose-parts');
     setUpFaceParts(faceTracker, nose, noseParts, 'nose');

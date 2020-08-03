@@ -406,19 +406,46 @@ class LeftEye extends FaceParts {
     }
 }
 
+class RightEyeBlow extends FaceParts {
+    constructor(canvas) {
+        super(canvas);
+
+        this._scale = 1 / 10;
+        this._marginOfTopScale = 30 * this._scale;
+        this._marginOfBottomScale = 44 * this._scale;
+        this._marginOfLeftScale = 4 * this._scale;
+        this._marginOfRightScale = 7 * this._scale;
+
+        this._indexOfMinX = [18];
+        this._indexOfMinY = [16, 17];
+        this._indexOfMaxX = [15];
+        this._indexOfMaxY = [15, 18];
+    }
+
+    _calcDegree() {
+        const n = Math.ceil(Math.random() * 3);
+        switch (n) {
+            case 1:
+                return this._degree -= (Math.ceil(Math.random() * 5) / 10) * Math.PI / 180;
+            default:
+                return this._degree += (Math.ceil(Math.random() * 10) / 10) * Math.PI / 180;
+        }
+    }
+}
+
 class RightEye extends FaceParts {
     constructor(canvas) {
         super(canvas);
 
         this._scale = 1 / 15;
-        this._marginOfTopScale = 8 * this._scale;
-        this._marginOfBottomScale = 17 * this._scale;
-        this._marginOfLeftScale = 4 * this._scale;
-        this._marginOfRightScale = 8 * this._scale;
+        this._marginOfTopScale = 18 * this._scale;
+        this._marginOfBottomScale = 26 * this._scale;
+        this._marginOfLeftScale = 8 * this._scale;
+        this._marginOfRightScale = 16 * this._scale;
 
-        this._indexOfMinX = [18, 30];
-        this._indexOfMinY = [16, 17];
-        this._indexOfMaxX = [15, 28];
+        this._indexOfMinX = [30];
+        this._indexOfMinY = [29, 67, 68];
+        this._indexOfMaxX = [28];
         this._indexOfMaxY = [31, 69, 70];
     }
 
