@@ -30,25 +30,126 @@
                 <input id="for-debug" type="checkbox" value="1">
             </div>
             <div>
-                <span><label for="privacy">Privacy</label></span>
-                <input id="privacy" type="checkbox" value="1">
+                <span><label for="eyeLine">EyeLine</label></span>
+                <input id="eyeLine" type="checkbox" value="1">
             </div>
         </div>
     </header>
 
     <div id="wrapper"></div>
 
-    <div id="overlay" class="fadein">
-        <canvas id="left-eye"></canvas>
-        <canvas id="right-eye"></canvas>
-        <canvas id="nose"></canvas>
-        <canvas id="mouth"></canvas>
-    </div>
+    <div id="overlay"></div>
 </div>
 <script src="js/vendor/stats/stats.min.js"></script>
 <script src="js/vendor/clmtrackr/clmtrackr.js"></script>
 <script src="js/v2c.js"></script>
+<script src="js/FaceTracker.js"></script>
 <script src="js/FaceParts.js"></script>
-<script src="js/F3.js"></script>
+<script src="js/Stage.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    'use strict';
+
+    const setUpDebug = (faceTracker) => {
+        const forDebug = document.querySelector('#for-debug');
+        forDebug.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                faceTracker.startDebug();
+            } else {
+                faceTracker.stopDebug();
+            }
+        });
+    }
+
+    const setUpEyeLine = (faceTracker) => {
+        const eyeLine = document.querySelector('#eyeLine');
+        eyeLine.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                faceTracker.addEyeLine();
+            } else {
+                faceTracker.removeEyeLine();
+            }
+        });
+    }
+
+    const setUpSwitchCamera = (faceTracker) => {
+        const switchCameraButton = document.querySelector('#switch-camera');
+        switchCameraButton.addEventListener('click', (e) => {
+            faceTracker.switchCamera();
+        });
+    }
+
+    const setUpFaceParts = (faceTracker, parts, partsElem, partName) => {
+        if (partsElem.checked) {
+            faceTracker.add(partName, parts);
+        }
+
+        partsElem.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                faceTracker.add(partName, parts);
+            } else {
+                faceTracker.remove(partName);
+            }
+        });
+    }
+
+    const setUp = (faceTracker) => {
+        setUpDebug(faceTracker);
+        setUpEyeLine(faceTracker);
+        setUpSwitchCamera(faceTracker);
+    }
+
+    const measureSize = () => {
+        let _o = window.orientation;
+        let _orientation = _o === undefined ? 90 : _o;
+        if (_orientation === 0 || _orientation === 180) {
+            return window.innerHeight;
+        }
+        return window.innerWidth;
+    }
+
+    const callbackOnLoadedmetadataVideo = video => {
+        faceTracker.setUp(video);
+    }
+
+    const callbackOnAfterVideoLoadError = err => {
+        alert(err);
+    }
+
+    const option = {
+        'longSideSize': measureSize(),
+        'callbackOnLoadedmetadataVideo': callbackOnLoadedmetadataVideo,
+        'callbackOnAfterVideoLoadError': callbackOnAfterVideoLoadError,
+    };
+
+    const v2c = new V2C('#wrapper', option);
+    const ctracker = new clm.tracker();
+    const stage = new Stage('#overlay');
+
+    const faceTracker = new FaceTracker(v2c, ctracker, stage);
+
+    const leftEye = new LeftEye(document.createElement('canvas'));
+    const leftEyeParts = document.querySelector('#left-eye-parts');
+    setUpFaceParts(faceTracker, leftEye, leftEyeParts, 'leftEye');
+
+    const leftEyeBlow = new LeftEyeBlow(document.createElement('canvas'));
+    setUpFaceParts(faceTracker, leftEyeBlow, leftEyeParts, 'leftEyeBlow');
+
+    const rightEye = new RightEye(document.createElement('canvas'));
+    const rightEyeParts = document.querySelector('#right-eye-parts');
+    setUpFaceParts(faceTracker, rightEye, rightEyeParts, 'rightEye');
+
+    const nose = new Nose(document.createElement('canvas'));
+    const noseParts = document.querySelector('#nose-parts');
+    setUpFaceParts(faceTracker, nose, noseParts, 'nose');
+
+    const mouth = new Mouth(document.createElement('canvas'));
+    const mouthParts = document.querySelector('#mouth-parts');
+    setUpFaceParts(faceTracker, mouth, mouthParts, 'mouth');
+
+    setUp(faceTracker);
+    faceTracker.start();
+});
+</script>
 </body>
 </html>
