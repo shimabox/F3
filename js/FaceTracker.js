@@ -34,11 +34,11 @@ class FaceTracker {
             return;
         }
 
-        if (this._addEyeLine) {
-            this.mosaic();
-        }
-
         this.move(canvas, positions, useFrontCamera);
+
+        if (this._addEyeLine) {
+            this.mosaic(positions, useFrontCamera);
+        }
 
         if (this._isDebug === true) {
             this._ctracker.draw(canvas);
@@ -96,14 +96,18 @@ class FaceTracker {
         this._parts.forEach(function (parts) {
             let coordinatesOfParts = parts.calcRangeOfCoordinates(positions, useFrontCamera);
             parts.render(canvas, coordinatesOfParts, useFrontCamera);
-            //parts.addPrivacy(coordinatesOfParts, useFrontCamera);
             parts.move(canvas, coordinatesOfParts, useFrontCamera);
         });
     }
 
-    mosaic() {
-        this._parts.forEach(function (parts) {
-        });
+    mosaic(positions, useFrontCamera) {
+        for(const parts of this._parts.values()) {
+            if (! (parts instanceof LeftEye) && ! (parts instanceof RightEye)) {
+                continue;
+            }
+            let coordinatesOfParts = parts.calcRangeOfCoordinates(positions, useFrontCamera);
+            parts.mosaic(coordinatesOfParts, useFrontCamera);
+        }
     }
 
     clear() {

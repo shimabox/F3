@@ -293,21 +293,21 @@ class FaceParts {
         return targetCanvasWidth;
     }
 
-    addPrivacy(_leftEyeCoordinates, useFrontCamera) {
-        // const _leftEyeCoordinates = this.calcRangeOfCoordinates(p, useFrontCamera);
+    mosaic(coordinatesOfParts, useFrontCamera) {
+        const w = coordinatesOfParts.maxX - coordinatesOfParts.minX;
+        const h = coordinatesOfParts.maxY - coordinatesOfParts.minY;
 
-        const leftEyeW = _leftEyeCoordinates.maxX - _leftEyeCoordinates.minX;
-        const leftEyeH = _leftEyeCoordinates.maxY - _leftEyeCoordinates.minY;
-
-        // this.eyeLine(canvas, _leftEyeCoordinates.minX - 10, _leftEyeCoordinates.minY - 5, leftEyeW + 20, leftEyeH + 10);
-        // this.eyeLine(canvas, _rightEyeCoordinates.minX - 10, _rightEyeCoordinates.minY - 5, rightEyeW + 20, rightEyeH + 10);
-        this.mosaic(this._canvas, _leftEyeCoordinates.minX - 10, _leftEyeCoordinates.minY - 5, leftEyeW + 20, leftEyeH + 10);
-        // this.mosaic(canvas, _rightEyeCoordinates.minX - 10, _rightEyeCoordinates.minY - 5, rightEyeW + 20, rightEyeH + 10);
+        //this._eyeLine();
+        this._mosaic();
     }
 
-    eyeLine(canvas, sx, sy, cw, ch) {
-        const ctx = canvas.getContext('2d');
-        const imageData = ctx.getImageData(sx, sy, cw, ch);
+    _eyeLine() {
+        const sx = 0;
+        const sy = 0;
+        const cw = this._canvas.width;
+        const ch = this._canvas.height;
+
+        const imageData = this._ctx.getImageData(sx, sy, cw, ch);
         const data = imageData.data;
 
         for(let i = 0; i < data.length; i += 4) {
@@ -316,18 +316,17 @@ class FaceParts {
             data[i + 2] = 0;
         }
 
-        ctx.putImageData(imageData, sx, sy);
+        this._ctx.putImageData(imageData, sx, sy);
     }
 
-    mosaic(canvas, sx, sy, cw, ch) {
-        sx = 0;
-        sy = 0;
-        cw = canvas.width;
-        ch = canvas.height;
+    _mosaic() {
+        const sx = 0;
+        const sy = 0;
+        const cw = this._canvas.width;
+        const ch = this._canvas.height;
 
         const size = 16;
-        const ctx = this._ctx;
-        const imageData = ctx.getImageData(sx, sy, cw, ch);
+        const imageData = this._ctx.getImageData(sx, sy, cw, ch);
         const data = imageData.data;
 
         for (let x = 0; x < cw; x += size) {
@@ -348,7 +347,7 @@ class FaceParts {
             }
         }
 
-        ctx.putImageData(imageData, sx, sy);
+        this._ctx.putImageData(imageData, sx, sy);
     }
 }
 
