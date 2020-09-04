@@ -85,14 +85,14 @@ class FaceParts {
         {'from': 48, 'to' : 46},
     ];
 
-    static coordinateIndexesOfLeftEyeLine = {
+    static _coordinateIndexesOfLeftEyeLine = {
         'indexOfMinX': [19],
         'indexOfMinY': [24, 63, 64],
         'indexOfMaxX': [22],
         'indexOfMaxY': [26, 65, 66]
     };
 
-    static CoordinateIndexesRightEyeLine = {
+    static _coordinateIndexesOfRightEyeLine = {
         'indexOfMinX': [30],
         'indexOfMinY': [29, 68, 67],
         'indexOfMaxX': [15],
@@ -158,37 +158,48 @@ class FaceParts {
         this._canvas.style.transform = val;
     }
 
+    calcRangeOfCoordinates(p, useFrontCamera) {
+        return this._calcRangeOfCoordinates(
+            p,
+            this._indexOfMinX,
+            this._indexOfMinY,
+            this._indexOfMaxX,
+            this._indexOfMaxY,
+            useFrontCamera
+        );
+    }
+
     /**
      * 矩形座標を求める
      * @link http://blog.phalusamil.com/entry/2016/07/09/150751
      */
-    calcRangeOfCoordinates(p, useFrontCamera) {
+    _calcRangeOfCoordinates(p, indexOfMinX, indexOfMinY, indexOfMaxX, indexOfMaxY, useFrontCamera) {
         let min = {'x': 100000, 'y': 100000};
         let max = {'x': 0, 'y': 0};
 
-        let _indexOfMinX = this._indexOfMinX;
-        let _indexOfMaxX = this._indexOfMaxX;
+        let _indexOfMinX = indexOfMinX;
+        let _indexOfMaxX = indexOfMaxX;
 
         if (useFrontCamera) {
             // swap
-            _indexOfMinX = this._indexOfMaxX;
-            _indexOfMaxX = this._indexOfMinX;
+            _indexOfMinX = indexOfMaxX;
+            _indexOfMaxX = indexOfMinX;
         }
 
         for (let i = 0; i < _indexOfMinX.length; i++) {
             let k = _indexOfMinX[i];
             min.x = min.x > p[k][0] ? p[k][0] : min.x;
         }
-        for (let i = 0; i < this._indexOfMinY.length; i++) {
-            let k = this._indexOfMinY[i];
+        for (let i = 0; i < indexOfMinY.length; i++) {
+            let k = indexOfMinY[i];
             min.y = min.y > p[k][1] ? p[k][1] : min.y;
         }
         for (let i = 0; i < _indexOfMaxX.length; i++) {
             let k = _indexOfMaxX[i];
             max.x = max.x < p[k][0] ? p[k][0] : max.x;
         }
-        for (let i = 0; i < this._indexOfMaxY.length; i++) {
-            let k = this._indexOfMaxY[i];
+        for (let i = 0; i < indexOfMaxY.length; i++) {
+            let k = indexOfMaxY[i];
             max.y = max.y < p[k][1] ? p[k][1] : max.y;
         }
 
@@ -230,14 +241,13 @@ class FaceParts {
         const distance = this._calcDistance();
         const degree = this._calcDegree();
 
-        const partsW = coordinatesOfParts.maxX - coordinatesOfParts.minX;
         const partsH = coordinatesOfParts.maxY - coordinatesOfParts.minY;
-        const realWidthOfParts = partsW + (partsW * this._marginOfRightScale);
-
         const topPosition = coordinatesOfParts.minY - (partsH * this._marginOfTopScale);
         const y = distance * Math.sin(degree) + topPosition;
         this._canvas.style.top = Math.round(y) + 'px';
 
+        const partsW = coordinatesOfParts.maxX - coordinatesOfParts.minX;
+        const realWidthOfParts = partsW + (partsW * this._marginOfRightScale);
         const leftPosition = this._calcMeasureX(useFrontCamera, baseCanvas.width, coordinatesOfParts.minX + realWidthOfParts) + (partsW * this._marginOfLeftScale);
         const x = distance * Math.cos(degree) + leftPosition;
         this._canvas.style.left = Math.round(x) + 'px';
@@ -293,20 +303,11 @@ class FaceParts {
         return targetCanvasWidth;
     }
 
-    mosaic(coordinatesOfParts, useFrontCamera) {
-        const w = coordinatesOfParts.maxX - coordinatesOfParts.minX;
-        const h = coordinatesOfParts.maxY - coordinatesOfParts.minY;
-
-        //this._eyeLine();
-        this._mosaic();
+    renderEyeLine(positions, useFrontCamera, applyMosaic) {
+        return;
     }
 
-    _eyeLine() {
-        const sx = 0;
-        const sy = 0;
-        const cw = this._canvas.width;
-        const ch = this._canvas.height;
-
+    _line(sx, sy, cw, ch) {
         const imageData = this._ctx.getImageData(sx, sy, cw, ch);
         const data = imageData.data;
 
@@ -319,15 +320,10 @@ class FaceParts {
         this._ctx.putImageData(imageData, sx, sy);
     }
 
-    _mosaic() {
-        const sx = 0;
-        const sy = 0;
-        const cw = this._canvas.width;
-        const ch = this._canvas.height;
-
-        const size = 16;
+    _mosaic(sx, sy, cw, ch) {
         const imageData = this._ctx.getImageData(sx, sy, cw, ch);
         const data = imageData.data;
+        const size = 16;
 
         for (let x = 0; x < cw; x += size) {
             for (let y = 0; y < ch; y += size) {
@@ -394,6 +390,43 @@ class LeftEye extends FaceParts {
         this._indexOfMaxY = [26, 65, 66];
     }
 
+    renderEyeLine(positions, useFrontCamera, applyMosaic) {
+        const coordinatesOfParts = this._calcRangeOfCoordinates(
+            positions,
+            this._indexOfMinX,
+            this._indexOfMinY,
+            this._indexOfMaxX,
+            this._indexOfMaxY,
+            useFrontCamera
+        );
+
+        const partsH = coordinatesOfParts.maxY - coordinatesOfParts.minY;
+        const topPosition = coordinatesOfParts.minY - (partsH * this._marginOfTopScale);
+
+        const partsW = coordinatesOfParts.maxX - coordinatesOfParts.minX;
+        const realWidthOfParts = partsW + (partsW * this._marginOfRightScale);
+
+        const coordinatesOfEyeLine = this._calcRangeOfCoordinates(
+            positions,
+            FaceParts._coordinateIndexesOfLeftEyeLine.indexOfMinX,
+            FaceParts._coordinateIndexesOfLeftEyeLine.indexOfMinY,
+            FaceParts._coordinateIndexesOfLeftEyeLine.indexOfMaxX,
+            FaceParts._coordinateIndexesOfLeftEyeLine.indexOfMaxY,
+            useFrontCamera
+        );
+
+        const sx = (realWidthOfParts - (coordinatesOfEyeLine.maxX - coordinatesOfEyeLine.minX)) / 2;
+        const sy = coordinatesOfEyeLine.minY - topPosition;
+        const cw = coordinatesOfEyeLine.maxX - coordinatesOfEyeLine.minX;
+        const ch = coordinatesOfEyeLine.maxY - coordinatesOfEyeLine.minY;
+
+        if (applyMosaic) {
+            this._mosaic(sx, sy, cw, ch);
+        } else {
+            this._line(sx, sy, cw, ch);
+        }
+    }
+
     _calcDegree() {
         const n = Math.ceil(Math.random() * 3);
         switch (n) {
@@ -446,6 +479,43 @@ class RightEye extends FaceParts {
         this._indexOfMinY = [29, 67, 68];
         this._indexOfMaxX = [28];
         this._indexOfMaxY = [31, 69, 70];
+    }
+
+    renderEyeLine(positions, useFrontCamera, applyMosaic) {
+        const coordinatesOfParts = this._calcRangeOfCoordinates(
+            positions,
+            this._indexOfMinX,
+            this._indexOfMinY,
+            this._indexOfMaxX,
+            this._indexOfMaxY,
+            useFrontCamera
+        );
+
+        const partsH = coordinatesOfParts.maxY - coordinatesOfParts.minY;
+        const topPosition = coordinatesOfParts.minY - (partsH * this._marginOfTopScale);
+
+        const partsW = coordinatesOfParts.maxX - coordinatesOfParts.minX;
+        const realWidthOfParts = partsW + (partsW * this._marginOfRightScale);
+
+        const coordinatesOfEyeLine = this._calcRangeOfCoordinates(
+            positions,
+            FaceParts._coordinateIndexesOfRightEyeLine.indexOfMinX,
+            FaceParts._coordinateIndexesOfRightEyeLine.indexOfMinY,
+            FaceParts._coordinateIndexesOfRightEyeLine.indexOfMaxX,
+            FaceParts._coordinateIndexesOfRightEyeLine.indexOfMaxY,
+            useFrontCamera
+        );
+
+        const sx = (realWidthOfParts - (coordinatesOfEyeLine.maxX - coordinatesOfEyeLine.minX)) / 2;
+        const sy = coordinatesOfEyeLine.minY - topPosition;
+        const cw = coordinatesOfEyeLine.maxX - coordinatesOfEyeLine.minX;
+        const ch = coordinatesOfEyeLine.maxY - coordinatesOfEyeLine.minY;
+
+        if (applyMosaic) {
+            this._mosaic(sx, sy, cw, ch);
+        } else {
+            this._line(sx, sy, cw, ch);
+        }
     }
 
     _calcDegree() {

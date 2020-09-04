@@ -1,10 +1,16 @@
 class FaceTracker {
+    /** dependency */
     _v2c;
     _ctracker;
     _stage;
+
+    /**
+     * @type {Map}
+     */
     _parts;
 
     _useFrontCamera = true;
+    _mobilize = true;
     _isDebug = false;
     _addEyeLine = false;
 
@@ -21,7 +27,12 @@ class FaceTracker {
     }
 
     start() {
+        this._mobilize = true;
         this._v2c.start((canvas) => this._drawLoop(canvas, this._v2c.useFrontCamera()));
+    }
+
+    stop() {
+        this._mobilize = false;
     }
 
     _drawLoop(canvas, useFrontCamera) {
@@ -34,10 +45,14 @@ class FaceTracker {
             return;
         }
 
-        this.move(canvas, positions, useFrontCamera);
+        if (this._mobilize) {
+            this.move(canvas, positions, useFrontCamera);
+        } else {
+            this.render(canvas, positions, useFrontCamera);
+        }
 
         if (this._addEyeLine) {
-            this.mosaic(positions, useFrontCamera);
+            this.eyeLine(positions, useFrontCamera);
         }
 
         if (this._isDebug === true) {
@@ -100,13 +115,13 @@ class FaceTracker {
         });
     }
 
-    mosaic(positions, useFrontCamera) {
+    eyeLine(positions, useFrontCamera) {
+        const applyMosaic = false;
         for(const parts of this._parts.values()) {
             if (! (parts instanceof LeftEye) && ! (parts instanceof RightEye)) {
                 continue;
             }
-            let coordinatesOfParts = parts.calcRangeOfCoordinates(positions, useFrontCamera);
-            parts.mosaic(coordinatesOfParts, useFrontCamera);
+            parts.renderEyeLine(positions, useFrontCamera, applyMosaic);
         }
     }
 

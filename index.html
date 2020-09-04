@@ -4,6 +4,7 @@
 <title>Face(eyes)! Face(nose)! Face(mouth)!</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://use.fontawesome.com/releases/v5.14.0/css/all.css" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="css/style.css" />
 </head>
 <body>
@@ -33,6 +34,8 @@
                 <span><label for="eyeLine">EyeLine</label></span>
                 <input id="eyeLine" type="checkbox" value="1">
             </div>
+            <button id="start" title="start"><i class="far fa-play-circle fa-3x"></i></button>
+            <button id="stop" title="stop"><i class="far fa-stop-circle fa-3x"></i></button>
         </div>
     </header>
 
@@ -49,6 +52,20 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     'use strict';
+
+    const setStartButton = (faceTracker) => {
+        const startButton = document.querySelector('#start');
+        startButton.addEventListener('click', (e) => {
+            faceTracker.start();
+        });
+    }
+
+    const setStopButton = (faceTracker) => {
+        const stopButton = document.querySelector('#stop');
+        stopButton.addEventListener('click', (e) => {
+            faceTracker.stop();
+        });
+    }
 
     const setUpDebug = (faceTracker) => {
         const forDebug = document.querySelector('#for-debug');
@@ -94,6 +111,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const setUp = (faceTracker) => {
+        setStartButton(faceTracker);
+        setStopButton(faceTracker);
         setUpDebug(faceTracker);
         setUpEyeLine(faceTracker);
         setUpSwitchCamera(faceTracker);
