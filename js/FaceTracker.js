@@ -116,7 +116,7 @@ class FaceTracker {
     }
 
     eyeLine(positions, useFrontCamera) {
-        const applyMosaic = false;
+        const applyMosaic = true;
         for(const parts of this._parts.values()) {
             if (! (parts instanceof LeftEye) && ! (parts instanceof RightEye)) {
                 continue;
