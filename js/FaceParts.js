@@ -150,11 +150,11 @@ class FaceParts {
         return afterSwappingPosition;
     }
 
-    setPosition(val) {
+    setStyleOfPosition(val) {
         this._canvas.style.position = val;
     }
 
-    setTransform(val) {
+    setStyleOfTransform(val) {
         this._canvas.style.transform = val;
     }
 
@@ -248,7 +248,13 @@ class FaceParts {
 
         const partsW = coordinatesOfParts.maxX - coordinatesOfParts.minX;
         const realWidthOfParts = partsW + (partsW * this._marginOfRightScale);
-        const leftPosition = this._calcMeasureX(useFrontCamera, baseCanvas.width, coordinatesOfParts.minX + realWidthOfParts) + (partsW * this._marginOfLeftScale);
+        const leftPosition = this._calcMeasureX(
+            useFrontCamera,
+            baseCanvas.width,
+            coordinatesOfParts.minX,
+            realWidthOfParts,
+            partsW * this._marginOfLeftScale
+        );
         const x = distance * Math.cos(degree) + leftPosition;
         this._canvas.style.left = Math.round(x) + 'px';
     }
@@ -296,11 +302,11 @@ class FaceParts {
         throw new Error('Not Implemented');
     }
 
-    _calcMeasureX(useFrontCamera, baseCanvasWidth, targetCanvasWidth) {
+    _calcMeasureX(useFrontCamera, baseCanvasWidth, xCoordinateOfTargetCanvas, realWidthOfParts, adjust) {
         if (useFrontCamera) {
-            return baseCanvasWidth - targetCanvasWidth;
+            return baseCanvasWidth - (xCoordinateOfTargetCanvas + realWidthOfParts) + adjust;
         }
-        return targetCanvasWidth;
+        return xCoordinateOfTargetCanvas - adjust;
     }
 
     renderEyeLine(positions, useFrontCamera, applyMosaic) {

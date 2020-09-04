@@ -174,12 +174,12 @@ class FaceTracker {
     }
 
     _initParts(v2c, parts) {
-        parts.setPosition('absolute');
+        parts.setStyleOfPosition('absolute');
 
         if (v2c.useFrontCamera() === true) {
-            parts.setTransform('scaleX(-1)');
+            parts.setStyleOfTransform('scaleX(-1)');
         } else {
-            parts.setTransform('scaleX(1)');
+            parts.setStyleOfTransform('scaleX(1)');
         }
     }
 
