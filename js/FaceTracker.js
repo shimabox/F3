@@ -10,7 +10,7 @@ class FaceTracker {
     _parts;
 
     _useFrontCamera = true;
-    _mobilize = true;
+    _movable = true;
     _isDebug = false;
     _addEyeLine = false;
 
@@ -27,12 +27,12 @@ class FaceTracker {
     }
 
     start() {
-        this._mobilize = true;
+        this._movable = true;
         this._v2c.start((canvas) => this._drawLoop(canvas, this._v2c.useFrontCamera()));
     }
 
     stop() {
-        this._mobilize = false;
+        this._movable = false;
     }
 
     _drawLoop(canvas, useFrontCamera) {
@@ -45,7 +45,7 @@ class FaceTracker {
             return;
         }
 
-        if (this._mobilize) {
+        if (this._movable) {
             this.move(canvas, positions, useFrontCamera);
         } else {
             this.render(canvas, positions, useFrontCamera);
