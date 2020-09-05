@@ -119,6 +119,8 @@ class FaceParts {
 
     _isDebug = false;
 
+    _referenceForDraggingFunction; // ドラッグ中関数参照用
+
     constructor(canvas) {
         this._canvas = canvas;
         this._ctx    = canvas.getContext('2d');
@@ -257,6 +259,92 @@ class FaceParts {
         );
         const x = distance * Math.cos(degree) + leftPosition;
         this._canvas.style.left = Math.round(x) + 'px';
+    }
+
+    draggable() {
+        this._canvas.onmousedown = function(e){
+            this._dragStart(e);
+        }.bind(this);
+        this._canvas.ontouchstart = function(e){
+            this._dragStart(e);
+        }.bind(this);
+
+        this._canvas.style.cursor = 'move';
+    }
+
+    dragDisabled() {
+        this._canvas.onmousedown = null;
+        this._canvas.ontouchstart = null;
+    }
+
+    _dragStart(e) {
+        let _event;
+        if(e.type === 'mousedown') {
+            _event = e;
+        } else {
+            _event = e.changedTouches[0];
+        }
+
+        let x = _event.pageX - this._canvas.offsetLeft;
+        let y = _event.pageY - this._canvas.offsetTop;
+
+        document.body.onmousemove = function (e) {
+            this._dragging(e, x, y);
+        }.bind(this);
+
+        // document.body.addEventListener('touchmove', this._dragging, { passive: false });
+        // の形にすると、this._dragging内のthisがbodyになってしまいcanvas(対象のFaceParts)の取得が煩雑になるので
+        // document.body.addEventListener('touchmove', function (e) {
+        //     this._dragging(e, x, y);
+        // }.bind(this), { passive: false });
+        // このように無名関数で実行したかったが、無名関数だとremoveEventListenerが効かなくなるので
+        // this._draggingへの参照を保持しておく関数を用意する
+        this._referenceForDraggingFunction = function (e) {
+            this._dragging(e, x, y);
+        }.bind(this);
+        document.body.addEventListener('touchmove', this._referenceForDraggingFunction, {passive: false});
+    }
+
+    _dragging(e, x, y) {
+        let _event;
+        if(e.type === 'mousemove') {
+            _event = e;
+        } else {
+            _event = e.changedTouches[0];
+        }
+
+        if (e.cancelable) {
+            e.preventDefault();
+        }
+
+        this._canvas.style.top = _event.pageY - y + 'px';
+        this._canvas.style.left = _event.pageX - x + 'px';
+
+        this._canvas.onmouseup = function(e){
+            this._dragEnd();
+        }.bind(this);
+        this._canvas.ontouchend = function(e){
+            this._dragEnd();
+        }.bind(this);
+        document.body.onmouseleave = function (e) {
+            this._dragEnd();
+        }.bind(this);
+    }
+
+    _dragEnd() {
+        document.body.onmousemove = null;
+        document.body.onmouseleave = null;
+        document.body.ontouchmove = null;
+
+        document.body.removeEventListener('touchmove', this._referenceForDraggingFunction, { passive: false });
+        // this._referenceForDraggingFunctionが参照している_draggingもremoveしないとイベントが消えない
+        document.body.removeEventListener('touchmove', this._dragging, { passive: false });
+        this._referenceForDraggingFunction = null;
+
+        this._canvas.onmouseup = null;
+        this._canvas.ontouchend = null;
+
+        this._canvas.style.cursor = 'default';
     }
 
     copy() {

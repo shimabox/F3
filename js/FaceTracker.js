@@ -28,11 +28,20 @@ class FaceTracker {
 
     start() {
         this._movable = true;
+
+        this._parts.forEach(function (parts) {
+            parts.dragDisabled();
+        });
+
         this._v2c.start((canvas) => this._drawLoop(canvas, this._v2c.useFrontCamera()));
     }
 
     stop() {
         this._movable = false;
+
+        this._parts.forEach(function (parts) {
+            parts.draggable();
+        });
     }
 
     _drawLoop(canvas, useFrontCamera) {
