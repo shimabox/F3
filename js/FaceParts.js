@@ -275,6 +275,7 @@ class FaceParts {
     dragDisabled() {
         this._canvas.onmousedown = null;
         this._canvas.ontouchstart = null;
+        this._canvas.style.cursor = 'default';
     }
 
     _dragStart(e) {
@@ -343,8 +344,6 @@ class FaceParts {
 
         this._canvas.onmouseup = null;
         this._canvas.ontouchend = null;
-
-        this._canvas.style.cursor = 'default';
     }
 
     copy() {
