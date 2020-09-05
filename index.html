@@ -48,6 +48,7 @@
 <script src="js/v2c.js"></script>
 <script src="js/FaceTracker.js"></script>
 <script src="js/FaceParts.js"></script>
+<script src="js/FaceCoordinate.js"></script>
 <script src="js/Stage.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
@@ -143,9 +144,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const v2c = new V2C('#wrapper', option);
     const ctracker = new clm.tracker();
+    const faceCoordinate = new FaceCoordinate();
     const stage = new Stage('#overlay');
 
-    const faceTracker = new FaceTracker(v2c, ctracker, stage);
+    const faceTracker = new FaceTracker(v2c, ctracker, faceCoordinate, stage);
 
     const leftEye = new LeftEye(document.createElement('canvas'));
     const leftEyeParts = document.querySelector('#left-eye-parts');

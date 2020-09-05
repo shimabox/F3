@@ -1,6 +1,4 @@
 class Stage {
-    _stage;
-
     constructor(selector) {
         this._stage = document.querySelector(selector);
         this.fadeIn();

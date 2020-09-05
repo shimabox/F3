@@ -1,24 +1,15 @@
 class FaceTracker {
-    /** dependency */
-    _v2c;
-    _ctracker;
-    _stage;
-
-    /**
-     * @type {Map}
-     */
-    _parts;
-
-    _useFrontCamera = true;
-    _movable = true;
-    _isDebug = false;
-    _addEyeLine = false;
-
-    constructor(v2c, ctracker, stage) {
+    constructor(v2c, ctracker, faceCoordinate, stage) {
         this._v2c = v2c;
         this._ctracker = ctracker;
+        this._faceCoordinate = faceCoordinate;
         this._stage = stage;
         this._parts = new Map();
+
+        this._useFrontCamera = true;
+        this._movable = true;
+        this._isDebug = false;
+        this._addEyeLine = false;
     }
 
     setUp(video) {
@@ -46,7 +37,7 @@ class FaceTracker {
 
     _drawLoop(canvas, useFrontCamera) {
         const positionsFromCtracker = this._ctracker.getCurrentPosition();
-        const positions = FaceParts.swapPosition(positionsFromCtracker, useFrontCamera);
+        const positions = this._faceCoordinate.swapPosition(positionsFromCtracker, useFrontCamera);
 
         this.clear();
 
