@@ -29,12 +29,16 @@ class FaceParts {
         this._indexOfMaxY = [];
 
         this._distance = 0;
-        this._isLeave = true;
         this._degree = 0;
+        this._isLeave = true;
 
         this._isDebug = false;
 
         this._referenceForDraggingFunction = null; // ドラッグ中関数参照用
+
+        // パーツの座標
+        this._lastTopPosition = 0;
+        this._lastLeftPosition = 0;
     }
 
     set isDebug(val) {
@@ -158,6 +162,7 @@ class FaceParts {
         const topPosition = coordinatesOfParts.minY - (partsH * this._marginOfTopScale);
         const y = distance * Math.sin(degree) + topPosition;
         this._canvas.style.top = Math.round(y) + 'px';
+        this._lastTopPosition = topPosition;
 
         const partsW = coordinatesOfParts.maxX - coordinatesOfParts.minX;
         const realWidthOfParts = partsW + (partsW * this._marginOfRightScale);
@@ -170,6 +175,7 @@ class FaceParts {
         );
         const x = distance * Math.cos(degree) + leftPosition;
         this._canvas.style.left = Math.round(x) + 'px';
+        this._lastLeftPosition = leftPosition;
     }
 
     draggable() {
@@ -255,6 +261,14 @@ class FaceParts {
 
         this._canvas.onmouseup = null;
         this._canvas.ontouchend = null;
+
+        const dragEndY = parseInt(this._canvas.style.top, 10);
+        const dragEndX = parseInt(this._canvas.style.left, 10);
+
+        // 停止中のパーツ座標(this._lastLeftPosition, this._lastTopPosition)と
+        // ドラッグ後の座標(dragEndX, dragEndY) から距離と角度を計算して反映
+        this._distance = Math.sqrt(Math.pow(dragEndX - this._lastLeftPosition, 2) + Math.pow(dragEndY - this._lastTopPosition, 2));
+        this._degree = Math.atan2(dragEndY - this._lastTopPosition, dragEndX - this._lastLeftPosition);
     }
 
     copy() {
