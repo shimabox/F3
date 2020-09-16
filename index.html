@@ -4,7 +4,6 @@
 <title>Face(eyes)! Face(nose)! Face(mouth)!</title>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<link href="https://use.fontawesome.com/releases/v5.14.0/css/all.css" rel="stylesheet">
 <link rel="stylesheet" type="text/css" href="css/style.css" />
 </head>
 <body>
@@ -13,30 +12,16 @@
         <h1>Face(eyes)! Face(nose)! Face(mouth)!</h1>
         <div class="buttons">
             <div>
+                <span><label for="play">Play</label></span>
+                <input id="play" type="checkbox" value="1" checked>
+            </div>
+            <div>
                 <span><label for="switch-camera">Camera switch</label></span>
                 <input id="switch-camera" type="checkbox" value="1" checked>
                 <span class="desc-switch-camera"><label for="switch-camera">(on: Front / off: Rear)</span>
             </div>
-            <div class="parts">
-                <span>Parts:</span>
-                <div>
-                    <label for="left-eye-parts">left eye</label> <input id="left-eye-parts" type="checkbox" value="1" checked>
-                    <label for="right-eye-parts">right eye</label> <input id="right-eye-parts" type="checkbox" value="1" checked>
-                    <label for="nose-parts">nose</label> <input id="nose-parts" type="checkbox" value="1" checked>
-                    <label for="mouth-parts">mouth</label> <input id="mouth-parts" type="checkbox" value="1" checked>
-                </div>
-            </div>
-            <div>
-                <span><label for="for-debug">Debug</label></span>
-                <input id="for-debug" type="checkbox" value="1">
-            </div>
-            <div>
-                <span><label for="eyeLine">EyeLine</label></span>
-                <input id="eyeLine" type="checkbox" value="1">
-            </div>
-            <button id="start" title="start"><i class="far fa-play-circle fa-3x"></i></button>
-            <button id="stop" title="stop"><i class="far fa-stop-circle fa-3x"></i></button>
         </div>
+
     </header>
 
     <div id="wrapper"></div>
@@ -45,6 +30,7 @@
 </div>
 <script src="js/vendor/stats/stats.min.js"></script>
 <script src="js/vendor/clmtrackr/clmtrackr.min.js"></script>
+<script src="js/vendor/dat.gui/dat.gui.min.js"></script>
 <script src="js/v2c.js"></script>
 <script src="js/FaceTracker.js"></script>
 <script src="js/FaceParts.js"></script>
@@ -54,24 +40,112 @@
 document.addEventListener('DOMContentLoaded', () => {
     'use strict';
 
-    const setStartButton = (faceTracker) => {
-        const startButton = document.querySelector('#start');
-        startButton.addEventListener('click', (e) => {
-            faceTracker.start();
-        });
-    }
-
-    const setStopButton = (faceTracker) => {
-        const stopButton = document.querySelector('#stop');
-        stopButton.addEventListener('click', (e) => {
-            faceTracker.stop();
-        });
-    }
-
-    const setUpDebug = (faceTracker) => {
-        const forDebug = document.querySelector('#for-debug');
-        forDebug.addEventListener('change', (e) => {
+    const setPlayButton = (faceTracker) => {
+        const playButton = document.querySelector('#play');
+        playButton.addEventListener('click', (e) => {
             if (e.target.checked) {
+                faceTracker.start();
+            } else {
+                faceTracker.stop();
+            }
+        })
+    }
+
+    const setUpSwitchCamera = (faceTracker) => {
+        const switchCameraButton = document.querySelector('#switch-camera');
+        switchCameraButton.addEventListener('click', (e) => {
+            faceTracker.switchCamera();
+        })
+    }
+
+    const setUpParameter = (faceTracker) => {
+        const parameter = {
+            debug: false,
+            eyeLine: false,
+            leftEye: true,
+            rightEye: true,
+            nose: true,
+            mouth: true,
+            autoPlace: false
+        }
+
+        const gui = new dat.GUI(parameter);
+        gui.close();
+        document.querySelector('header').appendChild(gui.domElement)
+
+        const facePartsFolder = gui.addFolder('Face Parts');
+        facePartsFolder.open();
+
+        const leftEye = new LeftEye(document.createElement('canvas'));
+        const leftEyeBlow = new LeftEyeBlow(document.createElement('canvas'));
+        const leftEyeController = facePartsFolder.add(parameter, 'leftEye').name('Left Eye');
+        if (leftEyeController.getValue() === true) {
+            faceTracker.add('leftEye', leftEye);
+            faceTracker.add('leftEyeBlow', leftEyeBlow);
+        }
+        leftEyeController.onChange((checked) => {
+            if (checked) {
+                faceTracker.add('leftEye', leftEye);
+                faceTracker.add('leftEyeBlow', leftEyeBlow);
+            } else {
+                faceTracker.remove('leftEye');
+                faceTracker.remove('leftEyeBlow');
+            }
+        });
+
+        const rightEye = new RightEye(document.createElement('canvas'));
+        const rightEyeBlow = new RightEyeBlow(document.createElement('canvas'));
+        const rightEyeController = facePartsFolder.add(parameter, 'rightEye').name('Right Eye');
+        if (rightEyeController.getValue() === true) {
+            faceTracker.add('rightEye', rightEye);
+            faceTracker.add('rightEyeBlow', rightEyeBlow);
+        }
+        rightEyeController.onChange((checked) => {
+            if (checked) {
+                faceTracker.add('rightEye', rightEye);
+                faceTracker.add('rightEyeBlow', rightEyeBlow);
+            } else {
+                faceTracker.remove('rightEye');
+                faceTracker.remove('rightEyeBlow');
+            }
+        });
+
+        const nose = new Nose(document.createElement('canvas'));
+        const noseController = facePartsFolder.add(parameter, 'nose').name('Nose');
+        if (noseController.getValue() === true) {
+            faceTracker.add('nose', nose);
+        }
+        noseController.onChange((checked) => {
+            if (checked) {
+                faceTracker.add('nose', nose);
+            } else {
+                faceTracker.remove('nose');
+            }
+        });
+
+        const mouth = new Mouth(document.createElement('canvas'));
+        const mouthController = facePartsFolder.add(parameter, 'mouth').name('Mouth');
+        if (mouthController.getValue() === true) {
+            faceTracker.add('mouth', mouth);
+        }
+        mouthController.onChange((checked) => {
+            if (checked) {
+                faceTracker.add('mouth', mouth);
+            } else {
+                faceTracker.remove('mouth');
+            }
+        });
+
+        gui.add(parameter, 'eyeLine').onChange((checked) => {
+            if (checked) {
+                faceTracker.addEyeLine();
+            } else {
+                faceTracker.removeEyeLine();
+            }
+        });
+
+        gui.add(parameter, 'debug').onChange((checked) => {
+            if (checked) {
                 faceTracker.startDebug();
             } else {
                 faceTracker.stopDebug();
@@ -79,44 +153,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    const setUpEyeLine = (faceTracker) => {
-        const eyeLine = document.querySelector('#eyeLine');
-        eyeLine.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                faceTracker.addEyeLine();
-            } else {
-                faceTracker.removeEyeLine();
-            }
-        });
-    }
-
-    const setUpSwitchCamera = (faceTracker) => {
-        const switchCameraButton = document.querySelector('#switch-camera');
-        switchCameraButton.addEventListener('click', (e) => {
-            faceTracker.switchCamera();
-        });
-    }
-
-    const setUpFaceParts = (faceTracker, parts, partsElem, partName) => {
-        if (partsElem.checked) {
-            faceTracker.add(partName, parts);
-        }
-
-        partsElem.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                faceTracker.add(partName, parts);
-            } else {
-                faceTracker.remove(partName);
-            }
-        });
-    }
-
     const setUp = (faceTracker) => {
-        setStartButton(faceTracker);
-        setStopButton(faceTracker);
-        setUpDebug(faceTracker);
-        setUpEyeLine(faceTracker);
+        setPlayButton(faceTracker);
         setUpSwitchCamera(faceTracker);
+        setUpParameter(faceTracker);
     }
 
     const measureSize = () => {
@@ -146,30 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ctracker = new clm.tracker();
     const faceCoordinate = new FaceCoordinate();
     const stage = new Stage('#overlay');
-
     const faceTracker = new FaceTracker(v2c, ctracker, faceCoordinate, stage);
-
-    const leftEye = new LeftEye(document.createElement('canvas'));
-    const leftEyeParts = document.querySelector('#left-eye-parts');
-    setUpFaceParts(faceTracker, leftEye, leftEyeParts, 'leftEye');
-
-    const leftEyeBlow = new LeftEyeBlow(document.createElement('canvas'));
-    setUpFaceParts(faceTracker, leftEyeBlow, leftEyeParts, 'leftEyeBlow');
-
-    const rightEye = new RightEye(document.createElement('canvas'));
-    const rightEyeParts = document.querySelector('#right-eye-parts');
-    setUpFaceParts(faceTracker, rightEye, rightEyeParts, 'rightEye');
-
-    const rightEyeBlow = new RightEyeBlow(document.createElement('canvas'));
-    setUpFaceParts(faceTracker, rightEyeBlow, rightEyeParts, 'rightEyeBlow');
-
-    const nose = new Nose(document.createElement('canvas'));
-    const noseParts = document.querySelector('#nose-parts');
-    setUpFaceParts(faceTracker, nose, noseParts, 'nose');
-
-    const mouth = new Mouth(document.createElement('canvas'));
-    const mouthParts = document.querySelector('#mouth-parts');
-    setUpFaceParts(faceTracker, mouth, mouthParts, 'mouth');
 
     setUp(faceTracker);
     faceTracker.start();

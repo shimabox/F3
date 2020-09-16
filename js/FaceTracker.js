@@ -212,7 +212,7 @@ event.initEvent('drawLoop', true, true);
 const stats = new Stats();
 stats.domElement.style.position = 'absolute';
 stats.domElement.style.top  = '1em';
-stats.domElement.style.left = '1.5em';
+stats.domElement.style.left = '1em';
 body.appendChild(stats.domElement);
 
 // Update stats on every iteration.
