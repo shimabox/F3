@@ -27,6 +27,8 @@
         </div>
     </header>
 
+    <div id="guiController"></div>
+
     <div id="wrapper"></div>
 
     <div id="overlay"></div>
@@ -84,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const gui = new dat.GUI(parameter);
         gui.close();
-        document.querySelector('header').appendChild(gui.domElement)
+        document.querySelector('#guiController').appendChild(gui.domElement)
 
         const facePartsFolder = gui.addFolder('Face Parts');
         facePartsFolder.open();
