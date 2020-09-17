@@ -20,8 +20,11 @@
                 <input id="switch-camera" type="checkbox" value="1" checked>
                 <span class="desc-switch-camera"><label for="switch-camera">(on: Front / off: Rear)</span>
             </div>
+            <div>
+                <span><label for="debug">Debug</label></span>
+                <input id="debug" type="checkbox" value="1">
+            </div>
         </div>
-
     </header>
 
     <div id="wrapper"></div>
@@ -58,14 +61,24 @@ document.addEventListener('DOMContentLoaded', () => {
         })
     }
 
+    const setUpDebug = (faceTracker) => {
+        const forDebug = document.querySelector('#debug');
+        forDebug.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                faceTracker.startDebug();
+            } else {
+                faceTracker.stopDebug();
+            }
+        })
+    }
+
     const setUpParameter = (faceTracker) => {
         const parameter = {
-            debug: false,
-            eyeLine: false,
             leftEye: true,
             rightEye: true,
             nose: true,
             mouth: true,
+            eyeLine: false,
             autoPlace: false
         }
 
@@ -143,19 +156,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 faceTracker.removeEyeLine();
             }
         });
-
-        gui.add(parameter, 'debug').onChange((checked) => {
-            if (checked) {
-                faceTracker.startDebug();
-            } else {
-                faceTracker.stopDebug();
-            }
-        });
     }
 
     const setUp = (faceTracker) => {
         setPlayButton(faceTracker);
         setUpSwitchCamera(faceTracker);
+        setUpDebug(faceTracker);
         setUpParameter(faceTracker);
     }
 
