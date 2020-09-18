@@ -76,6 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const setUpParameter = (faceTracker) => {
         const parameter = {
+            face: false,
             leftEye: true,
             rightEye: true,
             nose: true,
@@ -88,7 +89,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const gui = new dat.GUI(parameter);
         gui.close();
-        document.querySelector('#guiController').appendChild(gui.domElement)
+        document.querySelector('#guiController').appendChild(gui.domElement);
+
+        const face = new Face(document.createElement('canvas'));
+        gui.add(parameter, 'face').name('Face Only').listen().onChange((checked) => setFaceOnly('face', checked));
+        const setFaceOnly = (prop, checked) => {
+            const partsParameter = [
+                'leftEye',
+                'rightEye',
+                'nose',
+                'mouth'
+            ]
+
+            parameter[prop] = checked;
+
+            if (checked) {
+                for (const param of partsParameter){
+                    parameter[param] = false;
+                    faceTracker.remove(param);
+                }
+                faceTracker.remove('leftEyeBlow');
+                faceTracker.remove('rightEyeBlow');
+                faceTracker.add('face', face);
+            } else {
+                faceTracker.remove('face');
+            }
+        }
 
         const facePartsFolder = gui.addFolder('Face Parts');
         facePartsFolder.open();
@@ -100,10 +126,12 @@ document.addEventListener('DOMContentLoaded', () => {
             faceTracker.add('leftEye', leftEye);
             faceTracker.add('leftEyeBlow', leftEyeBlow);
         }
-        leftEyeController.onChange((checked) => {
+        leftEyeController.listen().onChange((checked) => {
             if (checked) {
                 faceTracker.add('leftEye', leftEye);
                 faceTracker.add('leftEyeBlow', leftEyeBlow);
+                parameter['face'] = false;
+                faceTracker.remove('face');
             } else {
                 faceTracker.remove('leftEye');
                 faceTracker.remove('leftEyeBlow');
@@ -117,10 +145,12 @@ document.addEventListener('DOMContentLoaded', () => {
             faceTracker.add('rightEye', rightEye);
             faceTracker.add('rightEyeBlow', rightEyeBlow);
         }
-        rightEyeController.onChange((checked) => {
+        rightEyeController.listen().onChange((checked) => {
             if (checked) {
                 faceTracker.add('rightEye', rightEye);
                 faceTracker.add('rightEyeBlow', rightEyeBlow);
+                parameter['face'] = false;
+                faceTracker.remove('face');
             } else {
                 faceTracker.remove('rightEye');
                 faceTracker.remove('rightEyeBlow');
@@ -132,9 +162,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (noseController.getValue() === true) {
             faceTracker.add('nose', nose);
         }
-        noseController.onChange((checked) => {
+        noseController.listen().onChange((checked) => {
             if (checked) {
                 faceTracker.add('nose', nose);
+                parameter['face'] = false;
+                faceTracker.remove('face');
             } else {
                 faceTracker.remove('nose');
             }
@@ -145,9 +177,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (mouthController.getValue() === true) {
             faceTracker.add('mouth', mouth);
         }
-        mouthController.onChange((checked) => {
+        mouthController.listen().onChange((checked) => {
             if (checked) {
                 faceTracker.add('mouth', mouth);
+                parameter['face'] = false;
+                faceTracker.remove('face');
             } else {
                 faceTracker.remove('mouth');
             }
@@ -161,7 +195,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const line = eyeLine.add(parameter, 'line').listen().onChange(() => setEyeLine('line'));
 
         const setEyeLine = (prop) => {
-            for (let param in parameter){
+            const eyeLineParameter = [
+                'none',
+                'mosaic',
+                'line'
+            ]
+            for (const param of eyeLineParameter){
                 parameter[param] = false;
             }
             parameter[prop] = true;
