@@ -97,8 +97,7 @@ class FaceTrackController {
                     this._guiParameter[name] = false;
                     this._faceTracker.remove(name);
                 }
-                this._faceTracker.remove('leftEyeBlow');
-                this._faceTracker.remove('rightEyeBlow');
+                this._removeEyeBlow();
                 this._faceTracker.add('face', face);
                 return;
             }
@@ -107,8 +106,7 @@ class FaceTrackController {
                 this._guiParameter[name] = true;
                 this._faceTracker.add(name, parts);
             }
-            this._faceTracker.add('leftEyeBlow', this.leftEyeBlow);
-            this._faceTracker.add('rightEyeBlow', this.rightEyeBlow);
+            this._addEyeBlow();
             this._faceTracker.remove('face');
         }
     }
@@ -127,19 +125,15 @@ class FaceTrackController {
         const leftEyeController = folder.add(this._guiParameter, 'leftEye').name('Left Eye');
 
         if (leftEyeController.getValue() === true) {
-            this._faceTracker.add('leftEye', this.leftEye);
-            this._faceTracker.add('leftEyeBlow', this.leftEyeBlow);
+            this._addLeftEye();
         }
 
         leftEyeController.listen().onChange((checked) => {
             if (checked) {
-                this._faceTracker.add('leftEye', this.leftEye);
-                this._faceTracker.add('leftEyeBlow', this.leftEyeBlow);
-                this._guiParameter['face'] = false;
-                this._faceTracker.remove('face');
+                this._addLeftEye();
+                this._removeFace();
             } else {
-                this._faceTracker.remove('leftEye');
-                this._faceTracker.remove('leftEyeBlow');
+                this._removeLeftEye();
             }
         });
     }
@@ -148,33 +142,30 @@ class FaceTrackController {
         const rightEyeController = folder.add(this._guiParameter, 'rightEye').name('Right Eye');
 
         if (rightEyeController.getValue() === true) {
-            this._faceTracker.add('rightEye', this.rightEye);
-            this._faceTracker.add('rightEyeBlow', this.rightEyeBlow);
+            this._addRightEye();
         }
 
         rightEyeController.listen().onChange((checked) => {
             if (checked) {
-                this._faceTracker.add('rightEye', this.rightEye);
-                this._faceTracker.add('rightEyeBlow', this.rightEyeBlow);
-                this._guiParameter['face'] = false;
-                this._faceTracker.remove('face');
+                this._addRightEye();
+                this._removeFace();
             } else {
-                this._faceTracker.remove('rightEye');
-                this._faceTracker.remove('rightEyeBlow');
+                this._removeRightEye();
             }
         });
     }
 
     _setUpNosePartsController(folder) {
         const noseController = folder.add(this._guiParameter, 'nose').name('Nose');
+
         if (noseController.getValue() === true) {
             this._faceTracker.add('nose', this.nose);
         }
+
         noseController.listen().onChange((checked) => {
             if (checked) {
                 this._faceTracker.add('nose', this.nose);
-                this._guiParameter['face'] = false;
-                this._faceTracker.remove('face');
+                this._removeFace();
             } else {
                 this._faceTracker.remove('nose');
             }
@@ -183,14 +174,15 @@ class FaceTrackController {
 
     _setUpMouthEyePartsController(folder) {
         const mouthController = folder.add(this._guiParameter, 'mouth').name('Mouth');
+
         if (mouthController.getValue() === true) {
             this._faceTracker.add('mouth', this.mouth);
         }
+
         mouthController.listen().onChange((checked) => {
             if (checked) {
                 this._faceTracker.add('mouth', this.mouth);
-                this._guiParameter['face'] = false;
-                this._faceTracker.remove('face');
+                this._removeFace();
             } else {
                 this._faceTracker.remove('mouth');
             }
@@ -228,5 +220,37 @@ class FaceTrackController {
             }
             this._faceTracker.addEyeLine('');
         }
+    }
+
+    _removeFace() {
+        this._guiParameter['face'] = false;
+        this._faceTracker.remove('face');
+    }
+
+    _addLeftEye() {
+        this._faceTracker.add('leftEye', this.leftEye);
+        this._faceTracker.add('leftEyeBlow', this.leftEyeBlow);
+    }
+    _removeLeftEye() {
+        this._faceTracker.remove('leftEye');
+        this._faceTracker.remove('leftEyeBlow');
+    }
+
+    _addRightEye() {
+        this._faceTracker.add('rightEye', this.rightEye);
+        this._faceTracker.add('rightEyeBlow', this.rightEyeBlow);
+    }
+    _removeRightEye() {
+        this._faceTracker.remove('rightEye');
+        this._faceTracker.remove('rightEyeBlow');
+    }
+
+    _addEyeBlow() {
+        this._faceTracker.add('leftEyeBlow', this.leftEyeBlow);
+        this._faceTracker.add('rightEyeBlow', this.rightEyeBlow);
+    }
+    _removeEyeBlow() {
+        this._faceTracker.remove('leftEyeBlow');
+        this._faceTracker.remove('rightEyeBlow');
     }
 }
