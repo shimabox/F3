@@ -67,6 +67,9 @@ class FaceTracker {
     }
 
     add(name, parts) {
+        if (this._movable === false) {
+            parts.draggable();
+        }
         parts.isDebug = this._isDebug;
         this._parts.set(name, parts);
         this._initParts(this._v2c, parts);
