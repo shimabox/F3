@@ -9,7 +9,8 @@ class FaceTracker {
         this._useFrontCamera = true;
         this._movable = true;
         this._isDebug = false;
-        this._addEyeLine = false;
+
+        this._eyeLineType = '';
     }
 
     setUp(video) {
@@ -51,8 +52,8 @@ class FaceTracker {
             this.render(canvas, positions, useFrontCamera);
         }
 
-        if (this._addEyeLine) {
-            this.eyeLine(positions, useFrontCamera);
+        if (this._eyeLineType !== '') {
+            this.eyeLine(positions, useFrontCamera, this._eyeLineType);
         }
 
         if (this._isDebug === true) {
@@ -115,13 +116,12 @@ class FaceTracker {
         });
     }
 
-    eyeLine(positions, useFrontCamera) {
-        const applyMosaic = true;
+    eyeLine(positions, useFrontCamera, eyeLineType) {
         for(const parts of this._parts.values()) {
             if (! (parts instanceof LeftEye) && ! (parts instanceof RightEye)) {
                 continue;
             }
-            parts.renderEyeLine(positions, useFrontCamera, applyMosaic);
+            parts.renderEyeLine(positions, useFrontCamera, eyeLineType);
         }
     }
 
@@ -139,12 +139,8 @@ class FaceTracker {
         this._parts.get(name);
     }
 
-    addEyeLine() {
-        this._addEyeLine = true;
-    }
-
-    removeEyeLine() {
-        this._addEyeLine = false;
+    addEyeLine(eyeLineType) {
+        this._eyeLineType = eyeLineType;
     }
 
     startDebug() {

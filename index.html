@@ -80,7 +80,9 @@ document.addEventListener('DOMContentLoaded', () => {
             rightEye: true,
             nose: true,
             mouth: true,
-            eyeLine: false,
+            none: true,
+            mosaic: false,
+            line:false,
             autoPlace: false
         }
 
@@ -151,13 +153,25 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        gui.add(parameter, 'eyeLine').onChange((checked) => {
-            if (checked) {
-                faceTracker.addEyeLine();
-            } else {
-                faceTracker.removeEyeLine();
+        const eyeLine = gui.addFolder('Eye Line');
+        eyeLine.open();
+
+        const none = eyeLine.add(parameter, 'none').listen().onChange(() => setEyeLine('none'));
+        const mosaic = eyeLine.add(parameter, 'mosaic').listen().onChange(() => setEyeLine('mosaic'));
+        const line = eyeLine.add(parameter, 'line').listen().onChange(() => setEyeLine('line'));
+
+        const setEyeLine = (prop) => {
+            for (let param in parameter){
+                parameter[param] = false;
             }
-        });
+            parameter[prop] = true;
+
+            if (prop !== 'none') {
+                faceTracker.addEyeLine(prop);
+                return;
+            }
+            faceTracker.addEyeLine('');
+        }
     }
 
     const setUp = (faceTracker) => {

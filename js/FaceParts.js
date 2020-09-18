@@ -39,6 +39,9 @@ class FaceParts {
         // パーツの座標
         this._lastTopPosition = 0;
         this._lastLeftPosition = 0;
+
+        this.EYE_LINE_TYPE_MOSAIC = 'mosaic';
+        this.EYE_LINE_TYPE_LINE = 'line';
     }
 
     set isDebug(val) {
@@ -321,8 +324,45 @@ class FaceParts {
         return xCoordinateOfTargetCanvas - adjust;
     }
 
-    renderEyeLine(positions, useFrontCamera, applyMosaic) {
+    renderEyeLine(positions, useFrontCamera, eyeLineType) {
         return;
+    }
+
+    _renderEyeLine(positions, useFrontCamera, eyeLineType, coordinateIndexes) {
+        const coordinatesOfParts = this._calcRangeOfCoordinates(
+            positions,
+            this._indexOfMinX,
+            this._indexOfMinY,
+            this._indexOfMaxX,
+            this._indexOfMaxY,
+            useFrontCamera
+        );
+
+        const partsH = coordinatesOfParts.maxY - coordinatesOfParts.minY;
+        const topPosition = coordinatesOfParts.minY - (partsH * this._marginOfTopScale);
+
+        const partsW = coordinatesOfParts.maxX - coordinatesOfParts.minX;
+        const realWidthOfParts = partsW + (partsW * this._marginOfRightScale);
+
+        const coordinatesOfEyeLine = this._calcRangeOfCoordinates(
+            positions,
+            coordinateIndexes.indexOfMinX,
+            coordinateIndexes.indexOfMinY,
+            coordinateIndexes.indexOfMaxX,
+            coordinateIndexes.indexOfMaxY,
+            useFrontCamera
+        );
+
+        const sx = (realWidthOfParts - (coordinatesOfEyeLine.maxX - coordinatesOfEyeLine.minX)) / 2;
+        const sy = coordinatesOfEyeLine.minY - topPosition;
+        const cw = coordinatesOfEyeLine.maxX - coordinatesOfEyeLine.minX;
+        const ch = coordinatesOfEyeLine.maxY - coordinatesOfEyeLine.minY;
+
+        if (eyeLineType === this.EYE_LINE_TYPE_MOSAIC) {
+            this._mosaic(sx, sy, cw, ch);
+        } else if(eyeLineType === this.EYE_LINE_TYPE_LINE) {
+            this._line(sx, sy, cw, ch);
+        }
     }
 
     _line(sx, sy, cw, ch) {
@@ -408,41 +448,8 @@ class LeftEye extends FaceParts {
         this._indexOfMaxY = [26, 65, 66];
     }
 
-    renderEyeLine(positions, useFrontCamera, applyMosaic) {
-        const coordinatesOfParts = this._calcRangeOfCoordinates(
-            positions,
-            this._indexOfMinX,
-            this._indexOfMinY,
-            this._indexOfMaxX,
-            this._indexOfMaxY,
-            useFrontCamera
-        );
-
-        const partsH = coordinatesOfParts.maxY - coordinatesOfParts.minY;
-        const topPosition = coordinatesOfParts.minY - (partsH * this._marginOfTopScale);
-
-        const partsW = coordinatesOfParts.maxX - coordinatesOfParts.minX;
-        const realWidthOfParts = partsW + (partsW * this._marginOfRightScale);
-
-        const coordinatesOfEyeLine = this._calcRangeOfCoordinates(
-            positions,
-            this._coordinateIndexesOfLeftEyeLine.indexOfMinX,
-            this._coordinateIndexesOfLeftEyeLine.indexOfMinY,
-            this._coordinateIndexesOfLeftEyeLine.indexOfMaxX,
-            this._coordinateIndexesOfLeftEyeLine.indexOfMaxY,
-            useFrontCamera
-        );
-
-        const sx = (realWidthOfParts - (coordinatesOfEyeLine.maxX - coordinatesOfEyeLine.minX)) / 2;
-        const sy = coordinatesOfEyeLine.minY - topPosition;
-        const cw = coordinatesOfEyeLine.maxX - coordinatesOfEyeLine.minX;
-        const ch = coordinatesOfEyeLine.maxY - coordinatesOfEyeLine.minY;
-
-        if (applyMosaic) {
-            this._mosaic(sx, sy, cw, ch);
-        } else {
-            this._line(sx, sy, cw, ch);
-        }
+    renderEyeLine(positions, useFrontCamera, eyeLineType) {
+        this._renderEyeLine(positions, useFrontCamera, eyeLineType, this._coordinateIndexesOfLeftEyeLine);
     }
 
     _calcDegree() {
@@ -499,41 +506,8 @@ class RightEye extends FaceParts {
         this._indexOfMaxY = [31, 69, 70];
     }
 
-    renderEyeLine(positions, useFrontCamera, applyMosaic) {
-        const coordinatesOfParts = this._calcRangeOfCoordinates(
-            positions,
-            this._indexOfMinX,
-            this._indexOfMinY,
-            this._indexOfMaxX,
-            this._indexOfMaxY,
-            useFrontCamera
-        );
-
-        const partsH = coordinatesOfParts.maxY - coordinatesOfParts.minY;
-        const topPosition = coordinatesOfParts.minY - (partsH * this._marginOfTopScale);
-
-        const partsW = coordinatesOfParts.maxX - coordinatesOfParts.minX;
-        const realWidthOfParts = partsW + (partsW * this._marginOfRightScale);
-
-        const coordinatesOfEyeLine = this._calcRangeOfCoordinates(
-            positions,
-            this._coordinateIndexesOfRightEyeLine.indexOfMinX,
-            this._coordinateIndexesOfRightEyeLine.indexOfMinY,
-            this._coordinateIndexesOfRightEyeLine.indexOfMaxX,
-            this._coordinateIndexesOfRightEyeLine.indexOfMaxY,
-            useFrontCamera
-        );
-
-        const sx = (realWidthOfParts - (coordinatesOfEyeLine.maxX - coordinatesOfEyeLine.minX)) / 2;
-        const sy = coordinatesOfEyeLine.minY - topPosition;
-        const cw = coordinatesOfEyeLine.maxX - coordinatesOfEyeLine.minX;
-        const ch = coordinatesOfEyeLine.maxY - coordinatesOfEyeLine.minY;
-
-        if (applyMosaic) {
-            this._mosaic(sx, sy, cw, ch);
-        } else {
-            this._line(sx, sy, cw, ch);
-        }
+    renderEyeLine(positions, useFrontCamera, eyeLineType) {
+        this._renderEyeLine(positions, useFrontCamera, eyeLineType, this._coordinateIndexesOfRightEyeLine);
     }
 
     _calcDegree() {
