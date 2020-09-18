@@ -61,24 +61,6 @@ class FaceParts {
         return this._canvas;
     }
 
-    swapPosition(positions, useFrontCamera) {
-        if (positions === false) {
-            return false;
-        }
-
-        if (useFrontCamera === false) {
-            return positions;
-        }
-
-        let afterSwappingPosition = [];
-        for (let i=0; i < this._faceCoordinateIndexForMapping.length; i++) {
-            afterSwappingPosition[this._faceCoordinateIndexForMapping[i].to]
-                = positions[this._faceCoordinateIndexForMapping[i].from];
-        }
-
-        return afterSwappingPosition;
-    }
-
     setStyleOfPosition(val) {
         this._canvas.style.position = val;
     }
