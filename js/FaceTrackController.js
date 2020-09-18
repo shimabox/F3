@@ -85,26 +85,33 @@ class FaceTrackController {
             .onChange((checked) => setFaceOnly('face', checked));
 
         const setFaceOnly = (prop, checked) => {
-            const partsParameter = [
-                'leftEye',
-                'rightEye',
-                'nose',
-                'mouth'
-            ]
+            const partsParameter = {
+                'leftEye': this.leftEye,
+                'rightEye': this.rightEye,
+                'nose': this.nose,
+                'mouth': this.mouth
+            }
 
             this._guiParameter[prop] = checked;
 
             if (checked) {
-                for (const param of partsParameter){
-                    this._guiParameter[param] = false;
-                    this._faceTracker.remove(param);
+                for (const name of Object.keys(partsParameter)) {
+                    this._guiParameter[name] = false;
+                    this._faceTracker.remove(name);
                 }
                 this._faceTracker.remove('leftEyeBlow');
                 this._faceTracker.remove('rightEyeBlow');
                 this._faceTracker.add('face', face);
-            } else {
-                this._faceTracker.remove('face');
+                return;
             }
+
+            for (const [name, parts] of Object.entries(partsParameter)) {
+                this._guiParameter[name] = true;
+                this._faceTracker.add(name, parts);
+            }
+            this._faceTracker.add('leftEyeBlow', this.leftEyeBlow);
+            this._faceTracker.add('rightEyeBlow', this.rightEyeBlow);
+            this._faceTracker.remove('face');
         }
     }
 
