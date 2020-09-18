@@ -40,185 +40,11 @@
 <script src="js/FaceTracker.js"></script>
 <script src="js/FaceParts.js"></script>
 <script src="js/FaceCoordinate.js"></script>
+<script src="js/FaceTrackController.js"></script>
 <script src="js/Stage.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
     'use strict';
-
-    const setPlayButton = (faceTracker) => {
-        const playButton = document.querySelector('#play');
-        playButton.addEventListener('click', (e) => {
-            if (e.target.checked) {
-                faceTracker.start();
-            } else {
-                faceTracker.stop();
-            }
-        })
-    }
-
-    const setUpSwitchCamera = (faceTracker) => {
-        const switchCameraButton = document.querySelector('#switch-camera');
-        switchCameraButton.addEventListener('click', (e) => {
-            faceTracker.switchCamera();
-        })
-    }
-
-    const setUpDebug = (faceTracker) => {
-        const forDebug = document.querySelector('#debug');
-        forDebug.addEventListener('change', (e) => {
-            if (e.target.checked) {
-                faceTracker.startDebug();
-            } else {
-                faceTracker.stopDebug();
-            }
-        })
-    }
-
-    const setUpParameter = (faceTracker) => {
-        const parameter = {
-            face: false,
-            leftEye: true,
-            rightEye: true,
-            nose: true,
-            mouth: true,
-            none: true,
-            mosaic: false,
-            line:false,
-            autoPlace: false
-        }
-
-        const gui = new dat.GUI(parameter);
-        gui.close();
-        document.querySelector('#guiController').appendChild(gui.domElement);
-
-        const face = new Face(document.createElement('canvas'));
-        gui.add(parameter, 'face').name('Face Only').listen().onChange((checked) => setFaceOnly('face', checked));
-        const setFaceOnly = (prop, checked) => {
-            const partsParameter = [
-                'leftEye',
-                'rightEye',
-                'nose',
-                'mouth'
-            ]
-
-            parameter[prop] = checked;
-
-            if (checked) {
-                for (const param of partsParameter){
-                    parameter[param] = false;
-                    faceTracker.remove(param);
-                }
-                faceTracker.remove('leftEyeBlow');
-                faceTracker.remove('rightEyeBlow');
-                faceTracker.add('face', face);
-            } else {
-                faceTracker.remove('face');
-            }
-        }
-
-        const facePartsFolder = gui.addFolder('Face Parts');
-        facePartsFolder.open();
-
-        const leftEye = new LeftEye(document.createElement('canvas'));
-        const leftEyeBlow = new LeftEyeBlow(document.createElement('canvas'));
-        const leftEyeController = facePartsFolder.add(parameter, 'leftEye').name('Left Eye');
-        if (leftEyeController.getValue() === true) {
-            faceTracker.add('leftEye', leftEye);
-            faceTracker.add('leftEyeBlow', leftEyeBlow);
-        }
-        leftEyeController.listen().onChange((checked) => {
-            if (checked) {
-                faceTracker.add('leftEye', leftEye);
-                faceTracker.add('leftEyeBlow', leftEyeBlow);
-                parameter['face'] = false;
-                faceTracker.remove('face');
-            } else {
-                faceTracker.remove('leftEye');
-                faceTracker.remove('leftEyeBlow');
-            }
-        });
-
-        const rightEye = new RightEye(document.createElement('canvas'));
-        const rightEyeBlow = new RightEyeBlow(document.createElement('canvas'));
-        const rightEyeController = facePartsFolder.add(parameter, 'rightEye').name('Right Eye');
-        if (rightEyeController.getValue() === true) {
-            faceTracker.add('rightEye', rightEye);
-            faceTracker.add('rightEyeBlow', rightEyeBlow);
-        }
-        rightEyeController.listen().onChange((checked) => {
-            if (checked) {
-                faceTracker.add('rightEye', rightEye);
-                faceTracker.add('rightEyeBlow', rightEyeBlow);
-                parameter['face'] = false;
-                faceTracker.remove('face');
-            } else {
-                faceTracker.remove('rightEye');
-                faceTracker.remove('rightEyeBlow');
-            }
-        });
-
-        const nose = new Nose(document.createElement('canvas'));
-        const noseController = facePartsFolder.add(parameter, 'nose').name('Nose');
-        if (noseController.getValue() === true) {
-            faceTracker.add('nose', nose);
-        }
-        noseController.listen().onChange((checked) => {
-            if (checked) {
-                faceTracker.add('nose', nose);
-                parameter['face'] = false;
-                faceTracker.remove('face');
-            } else {
-                faceTracker.remove('nose');
-            }
-        });
-
-        const mouth = new Mouth(document.createElement('canvas'));
-        const mouthController = facePartsFolder.add(parameter, 'mouth').name('Mouth');
-        if (mouthController.getValue() === true) {
-            faceTracker.add('mouth', mouth);
-        }
-        mouthController.listen().onChange((checked) => {
-            if (checked) {
-                faceTracker.add('mouth', mouth);
-                parameter['face'] = false;
-                faceTracker.remove('face');
-            } else {
-                faceTracker.remove('mouth');
-            }
-        });
-
-        const eyeLine = gui.addFolder('Eye Line');
-        eyeLine.open();
-
-        const none = eyeLine.add(parameter, 'none').listen().onChange(() => setEyeLine('none'));
-        const mosaic = eyeLine.add(parameter, 'mosaic').listen().onChange(() => setEyeLine('mosaic'));
-        const line = eyeLine.add(parameter, 'line').listen().onChange(() => setEyeLine('line'));
-
-        const setEyeLine = (prop) => {
-            const eyeLineParameter = [
-                'none',
-                'mosaic',
-                'line'
-            ]
-            for (const param of eyeLineParameter){
-                parameter[param] = false;
-            }
-            parameter[prop] = true;
-
-            if (prop !== 'none') {
-                faceTracker.addEyeLine(prop);
-                return;
-            }
-            faceTracker.addEyeLine('');
-        }
-    }
-
-    const setUp = (faceTracker) => {
-        setPlayButton(faceTracker);
-        setUpSwitchCamera(faceTracker);
-        setUpDebug(faceTracker);
-        setUpParameter(faceTracker);
-    }
 
     const measureSize = () => {
         let _o = window.orientation;
@@ -248,9 +74,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const faceCoordinate = new FaceCoordinate();
     const stage = new Stage('#overlay');
     const faceTracker = new FaceTracker(v2c, ctracker, faceCoordinate, stage);
+    const controller = new FaceTrackController(faceTracker);
 
-    setUp(faceTracker);
-    faceTracker.start();
+    controller.run();
 });
 </script>
 </body>
