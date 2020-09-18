@@ -103,8 +103,8 @@ class FaceParts {
      * @link http://blog.phalusamil.com/entry/2016/07/09/150751
      */
     _calcRangeOfCoordinates(p, indexOfMinX, indexOfMinY, indexOfMaxX, indexOfMaxY, useFrontCamera) {
-        let min = {'x': 100000, 'y': 100000};
-        let max = {'x': 0, 'y': 0};
+        const min = {'x': 100000, 'y': 100000};
+        const max = {'x': 0, 'y': 0};
 
         let _indexOfMinX = indexOfMinX;
         let _indexOfMaxX = indexOfMaxX;
@@ -145,10 +145,10 @@ class FaceParts {
         const partsH = coordinatesOfParts.maxY - coordinatesOfParts.minY;
 
         // 検出部分の面積調整(少し広めにしたりとか)
-        let sx = coordinatesOfParts.minX - (partsW * this._marginOfLeftScale);
-        let sy = coordinatesOfParts.minY - (partsH * this._marginOfTopScale);
-        let sw = Math.round(partsW + (partsW * this._marginOfRightScale));
-        let sh = Math.round(partsH + (partsH * this._marginOfBottomScale));
+        const sx = coordinatesOfParts.minX - (partsW * this._marginOfLeftScale);
+        const sy = coordinatesOfParts.minY - (partsH * this._marginOfTopScale);
+        const sw = Math.round(partsW + (partsW * this._marginOfRightScale));
+        const sh = Math.round(partsH + (partsH * this._marginOfBottomScale));
 
         this._canvas.width  = sw;
         this._canvas.height = sh;
@@ -215,8 +215,8 @@ class FaceParts {
             _event = e.changedTouches[0];
         }
 
-        let x = _event.pageX - this._canvas.offsetLeft;
-        let y = _event.pageY - this._canvas.offsetTop;
+        const x = _event.pageX - this._canvas.offsetLeft;
+        const y = _event.pageY - this._canvas.offsetTop;
 
         document.body.onmousemove = function (e) {
             this._dragging(e, x, y);

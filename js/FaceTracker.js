@@ -105,14 +105,14 @@ class FaceTracker {
 
     render(canvas, positions, useFrontCamera) {
         this._parts.forEach(function (parts) {
-            let coordinatesOfParts = parts.calcRangeOfCoordinates(positions, useFrontCamera);
+            const coordinatesOfParts = parts.calcRangeOfCoordinates(positions, useFrontCamera);
             parts.render(canvas, coordinatesOfParts, useFrontCamera);
         });
     }
 
     move(canvas, positions, useFrontCamera) {
         this._parts.forEach(function (parts) {
-            let coordinatesOfParts = parts.calcRangeOfCoordinates(positions, useFrontCamera);
+            const coordinatesOfParts = parts.calcRangeOfCoordinates(positions, useFrontCamera);
             parts.render(canvas, coordinatesOfParts, useFrontCamera);
             parts.move(canvas, coordinatesOfParts, useFrontCamera);
         });

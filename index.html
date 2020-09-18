@@ -47,8 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
     'use strict';
 
     const measureSize = () => {
-        let _o = window.orientation;
-        let _orientation = _o === undefined ? 90 : _o;
+        const _o = window.orientation;
+        const _orientation = _o === undefined ? 90 : _o;
         if (_orientation === 0 || _orientation === 180) {
             return window.innerHeight;
         }
