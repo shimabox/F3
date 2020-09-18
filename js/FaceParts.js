@@ -3,6 +3,13 @@ class FaceParts {
         this._canvas = canvas;
         this._ctx    = canvas.getContext('2d');
 
+        this._coordinateIndexesOfEyeLine = {
+            'indexOfMinX': [19, 20, 23],
+            'indexOfMinY': [24, 29, 63, 64, 67, 68],
+            'indexOfMaxX': [15, 16, 28],
+            'indexOfMaxY': [23, 25, 26, 28, 30, 31, 65, 66, 69, 70]
+        };
+
         this._coordinateIndexesOfLeftEyeLine = {
             'indexOfMinX': [19],
             'indexOfMinY': [24, 63, 64],
@@ -405,6 +412,37 @@ class FaceParts {
     }
 }
 
+class Face extends FaceParts {
+    constructor(canvas) {
+        super(canvas);
+
+        this._scale = 1 / 10;
+        this._marginOfTopScale = 5 * this._scale;
+        this._marginOfBottomScale = 6 * this._scale;
+        this._marginOfLeftScale = 1 * this._scale;
+        this._marginOfRightScale = 2 * this._scale;
+
+        this._indexOfMinX = [0, 1, 2, 3, 4, 5, 6, 7, 19, 20];
+        this._indexOfMinY = [0, 1, 2, 12, 13, 14, 15, 16, 19, 20];
+        this._indexOfMaxX = [7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+        this._indexOfMaxY = [3, 4, 5, 6, 7, 8, 9, 10, 11];
+    }
+
+    renderEyeLine(positions, useFrontCamera, eyeLineType) {
+        this._renderEyeLine(positions, useFrontCamera, eyeLineType, this._coordinateIndexesOfEyeLine);
+    }
+
+    _calcDegree() {
+        const n = Math.ceil(Math.random() * 3);
+        switch (n) {
+            case 1:
+                return this._degree += (Math.ceil(Math.random() * 5) / 10) * Math.PI / 180;
+            default:
+                return this._degree -= (Math.ceil(Math.random() * 10) / 10) * Math.PI / 180;
+        }
+    }
+}
+
 class LeftEyeBlow extends FaceParts {
     constructor(canvas) {
         super(canvas);
@@ -419,6 +457,10 @@ class LeftEyeBlow extends FaceParts {
         this._indexOfMinY = [20, 21];
         this._indexOfMaxX = [22];
         this._indexOfMaxY = [19, 22];
+    }
+
+    renderEyeLine(positions, useFrontCamera, eyeLineType) {
+        this._renderEyeLine(positions, useFrontCamera, eyeLineType, this._coordinateIndexesOfLeftEyeLine);
     }
 
     _calcDegree() {

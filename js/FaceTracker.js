@@ -118,7 +118,7 @@ class FaceTracker {
 
     eyeLine(positions, useFrontCamera, eyeLineType) {
         for(const parts of this._parts.values()) {
-            if (! (parts instanceof LeftEye) && ! (parts instanceof RightEye)) {
+            if (! (parts instanceof Face) && ! (parts instanceof LeftEye) && ! (parts instanceof RightEye)) {
                 continue;
             }
             parts.renderEyeLine(positions, useFrontCamera, eyeLineType);
