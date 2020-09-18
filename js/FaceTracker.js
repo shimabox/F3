@@ -82,6 +82,7 @@ class FaceTracker {
 
         this._stage.remove(parts.canvas);
         parts.isDebug = this._isDebug;
+        parts.dragDisabled();
         parts.clear();
         this._parts.delete(name);
     }
