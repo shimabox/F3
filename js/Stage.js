@@ -1,3 +1,5 @@
+'use strict';
+
 class Stage {
     constructor(selector) {
         this._stage = document.querySelector(selector);

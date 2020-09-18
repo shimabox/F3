@@ -1,3 +1,5 @@
+'use strict';
+
 class FaceParts {
     constructor(canvas) {
         this._canvas = canvas;

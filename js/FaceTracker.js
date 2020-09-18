@@ -1,3 +1,5 @@
+'use strict';
+
 class FaceTracker {
     constructor(v2c, ctracker, faceCoordinate, stage) {
         this._v2c = v2c;
