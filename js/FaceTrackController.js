@@ -102,15 +102,19 @@ class FaceTrackController {
                 this._faceTracker.remove('leftEyeBlow');
                 this._faceTracker.remove('rightEyeBlow');
                 this._faceTracker.add('face', face);
+                this._addDragEventIfStopped(face);
                 return;
             }
 
             for (const [name, parts] of Object.entries(partsParameter)) {
                 this._guiParameter[name] = true;
                 this._faceTracker.add(name, parts);
+                this._addDragEventIfStopped(parts);
             }
             this._faceTracker.add('leftEyeBlow', this.leftEyeBlow);
+            this._addDragEventIfStopped(this.leftEyeBlow);
             this._faceTracker.add('rightEyeBlow', this.rightEyeBlow);
+            this._addDragEventIfStopped(this.rightEyeBlow);
             this._faceTracker.remove('face');
         }
     }
@@ -137,6 +141,9 @@ class FaceTrackController {
             if (checked) {
                 this._faceTracker.add('leftEye', this.leftEye);
                 this._faceTracker.add('leftEyeBlow', this.leftEyeBlow);
+                this._addDragEventIfStopped(this.leftEye);
+                this._addDragEventIfStopped(this.leftEyeBlow);
+
                 this._guiParameter['face'] = false;
                 this._faceTracker.remove('face');
             } else {
@@ -158,6 +165,9 @@ class FaceTrackController {
             if (checked) {
                 this._faceTracker.add('rightEye', this.rightEye);
                 this._faceTracker.add('rightEyeBlow', this.rightEyeBlow);
+                this._addDragEventIfStopped(this.rightEye);
+                this._addDragEventIfStopped(this.rightEyeBlow);
+
                 this._guiParameter['face'] = false;
                 this._faceTracker.remove('face');
             } else {
@@ -175,6 +185,8 @@ class FaceTrackController {
         noseController.listen().onChange((checked) => {
             if (checked) {
                 this._faceTracker.add('nose', this.nose);
+                this._addDragEventIfStopped(this.nose);
+
                 this._guiParameter['face'] = false;
                 this._faceTracker.remove('face');
             } else {
@@ -191,6 +203,8 @@ class FaceTrackController {
         mouthController.listen().onChange((checked) => {
             if (checked) {
                 this._faceTracker.add('mouth', this.mouth);
+                this._addDragEventIfStopped(this.mouth);
+
                 this._guiParameter['face'] = false;
                 this._faceTracker.remove('face');
             } else {
@@ -230,5 +244,12 @@ class FaceTrackController {
             }
             this._faceTracker.addEyeLine('');
         }
+    }
+
+    _addDragEventIfStopped(parts) {
+        if (this._playButton.checked) {
+            return;
+        }
+        parts.draggable();
     }
 }
