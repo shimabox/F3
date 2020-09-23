@@ -56,5 +56,9 @@ https://shimabox.github.io/F3/
 
 [shimabox/v2c: Video(webcam) to canvas.](https://github.com/shimabox/v2c "shimabox/v2c: Video(webcam) to canvas.")
 
+## See Also
+
+[【JavaScript】clmtrackrで顔認識して遊ぶ - Qiita](https://qiita.com/shimabox/items/677098a533b909089235 "【JavaScript】clmtrackrで顔認識して遊ぶ - Qiita")
+
 ## License
 The MIT License (MIT). Please see [License File](LICENSE) for more information.
